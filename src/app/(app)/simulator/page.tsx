@@ -34,11 +34,11 @@ const chartConfig = {
 
 
 export default function SimulatorPage() {
-    const [isSimulating, setIsSimulating = React.useState(false);
-    const [progress, setProgress = React.useState(0);
-    const [simTime, setSimTime = React.useState(0);
-    const [isTesting, setIsTesting = React.useState(false);
-    const [testComplete, setTestComplete = React.useState(false);
+    const [isSimulating, setIsSimulating] = React.useState(false);
+    const [progress, setProgress] = React.useState(0);
+    const [simTime, setSimTime] = React.useState(0);
+    const [isTesting, setIsTesting] = React.useState(false);
+    const [testComplete, setTestComplete] = React.useState(false);
 
     React.useEffect(() => {
         let timer: NodeJS.Timeout;

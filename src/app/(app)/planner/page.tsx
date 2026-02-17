@@ -32,9 +32,9 @@ const mockRestrictedZones: RestrictedZone[] = [
 export default function PlannerPage() {
   const [waypoints, setWaypoints] = React.useState<Waypoint[]>([]);
   const [flightPath, setFlightPath] = React.useState<FlightPath | null>(null);
-  const [safeCorridor, setSafeCorridor = React.useState<SafeCorridor | null>(null);
-  const [aiResponse, setAiResponse = React.useState<{warnings: string[], notes: string} | null>(null);
-  const [isLoading, setIsLoading = React.useState(false);
+  const [safeCorridor, setSafeCorridor] = React.useState<SafeCorridor | null>(null);
+  const [aiResponse, setAiResponse] = React.useState<{warnings: string[], notes: string} | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
   const mapRef = React.useRef<HTMLDivElement>(null);
 
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {

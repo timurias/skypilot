@@ -35,10 +35,10 @@ const chartConfig = {
 };
 
 export default function RetrainPage() {
-    const [isLoading, setIsLoading = React.useState(false);
-    const [aiSuggestions, setAiSuggestions = React.useState<AiSuggestions | null>(null);
-    const [isTraining, setIsTraining = React.useState(false);
-    const [trainingData, setTrainingData = React.useState<{epoch: number, loss: number, accuracy: number}[]>([]);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [aiSuggestions, setAiSuggestions] = React.useState<AiSuggestions | null>(null);
+    const [isTraining, setIsTraining] = React.useState(false);
+    const [trainingData, setTrainingData] = React.useState<{epoch: number, loss: number, accuracy: number}[]>([]);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
