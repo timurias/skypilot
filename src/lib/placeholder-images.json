@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "aerial_map",
+      "description": "Aerial view of a city for mission planning",
+      "imageUrl": "https://images.unsplash.com/photo-1628863965955-26e57846fc4c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhZXJpYWwlMjBtYXB8ZW58MHx8fHwxNzcxMzIyNDk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "aerial map"
+    },
+    {
+      "id": "sensor_feed",
+      "description": "Placeholder for a UAV sensor feed",
+      "imageUrl": "https://images.unsplash.com/photo-1667670778881-537035257bd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzcxMzIyNDk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "circuit board"
+    },
+    {
+      "id": "uav_multirotor",
+      "description": "A multi-rotor drone",
+      "imageUrl": "https://images.unsplash.com/photo-1506947411487-a56738267384?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkcm9uZXxlbnwwfHx8fDE3NzEyNzg1NzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "drone"
+    },
+    {
+      "id": "uav_fixedwing",
+      "description": "A fixed-wing drone",
+      "imageUrl": "https://images.unsplash.com/photo-1745390397451-0a69b9af62f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkcm9uZSUyMHdpbmd8ZW58MHx8fHwxNzcxMzIyNDk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "drone wing"
+    },
+    {
+      "id": "uav_vtol",
+      "description": "A VTOL drone",
+      "imageUrl": "https://images.unsplash.com/photo-1745390397272-fd398a888a43?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkcm9uZSUyMHZ0b2x8ZW58MHx8fHwxNzcxMzIyNTAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "drone vtol"
+    }
+  ]
 }
