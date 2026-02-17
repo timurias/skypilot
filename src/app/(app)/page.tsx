@@ -64,12 +64,12 @@ export default function DashboardPage() {
               <CardDescription>{feature.description}</CardDescription>
             </CardHeader>
             <CardContent className="mt-auto">
-              <Link href={feature.href} legacyBehavior passHref>
-                <Button variant="outline" className="w-full">
+              <Button asChild variant="outline" className="w-full">
+                <Link href={feature.href}>
                   Open Tool
                   <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         ))}
