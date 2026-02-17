@@ -43,6 +43,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 import type { UAVConfiguration, UAVType } from '@/lib/types';
 import { availablePayloads, initialUavConfigurations, uavTypes } from '@/lib/data';
