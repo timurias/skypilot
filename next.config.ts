@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'sovzond.ru',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
