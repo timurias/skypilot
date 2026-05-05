@@ -18,26 +18,26 @@ import { PageHeader } from '@/components/page-header';
 
 const features = [
   {
-    title: 'UAV Model & Payload Editor',
-    description: 'Configure UAV types, parameters, and sensor payloads.',
+    title: 'Редактор БПЛА и нагрузок',
+    description: 'Конфигурация типов БПЛА, параметров и полезной нагрузки.',
     icon: SlidersHorizontal,
     href: '/editor',
   },
   {
-    title: 'AI Mission Planner',
-    description: 'Plan safe and optimal flight paths with AI assistance.',
+    title: 'ИИ Планировщик миссий',
+    description: 'Планирование безопасных и оптимальных маршрутов с помощью ИИ.',
     icon: Map,
     href: '/planner',
   },
   {
-    title: 'Virtual Flight Simulator',
-    description: 'Execute and visualize missions in a real-time simulation.',
+    title: 'Виртуальный симулятор',
+    description: 'Выполнение и визуализация миссий в режиме реального времени.',
     icon: PlayCircle,
     href: '/simulator',
   },
   {
-    title: 'NN Re-training Console',
-    description: 'Monitor and initiate AI model re-training processes.',
+    title: 'Консоль переобучения НС',
+    description: 'Мониторинг и запуск процесса дообучения нейросетевых моделей.',
     icon: BrainCircuit,
     href: '/retrain',
   },
@@ -47,8 +47,8 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Welcome to SkyPilot AI"
-        description="The integrated suite for designing, simulating, and refining autonomous UAV control systems."
+        title="Добро пожаловать в SkyPilot AI"
+        description="Интегрированная среда для проектирования, симуляции и совершенствования автономных систем управления БПЛА."
       />
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <CardContent className="mt-auto">
               <Button asChild variant="outline" className="w-full">
                 <Link href={feature.href}>
-                  Open Tool
+                  Открыть инструмент
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

@@ -1,16 +1,16 @@
 import type { UAVConfiguration, UAVType } from './types';
 
 export const uavTypes: { id: UAVType; name: string; description: string }[] = [
-  { id: 'MT', name: 'Multi-rotor (МТ)', description: 'Versatile for hover and maneuverability.' },
-  { id: 'ST', name: 'Fixed-wing (СТ)', description: 'Efficient for long-range surveillance.' },
-  { id: 'SVVP', name: 'VTOL (СВВП)', description: 'Combines hover and long-range flight.' },
+  { id: 'MT', name: 'Мультироторный (МТ)', description: 'Универсален для зависания и маневренности.' },
+  { id: 'ST', name: 'Самолетный (СТ)', description: 'Эффективен для дальнего наблюдения.' },
+  { id: 'SVVP', name: 'СВВП (СВВП)', description: 'Сочетает зависание и дальний полет.' },
 ];
 
 export const availablePayloads = [
-  { id: 'livox_mid_360', name: 'Lidar: Livox Mid-360' },
-  { id: 'livox_avia', name: 'Lidar: Livox Avia' },
-  { id: 'course_camera', name: 'Course Camera' },
-  { id: 'nadir_camera', name: 'Nadir Camera' },
+  { id: 'livox_mid_360', name: 'Лидар: Livox Mid-360' },
+  { id: 'livox_avia', name: 'Лидар: Livox Avia' },
+  { id: 'course_camera', name: 'Курсовая камера' },
+  { id: 'nadir_camera', name: 'Надирная камера' },
 ];
 
 export const initialUavConfigurations: UAVConfiguration[] = [
@@ -19,7 +19,7 @@ export const initialUavConfigurations: UAVConfiguration[] = [
         name: 'Recon Drone Alpha',
         type: 'MT',
         mass: 2.5,
-        dimensions: '550x550x300mm',
+        dimensions: '550x550x300мм',
         motorParams: '2212 920KV',
         payloads: ['livox_mid_360', 'course_camera']
     },
@@ -28,7 +28,7 @@ export const initialUavConfigurations: UAVConfiguration[] = [
         name: 'Survey Wing Bravo',
         type: 'ST',
         mass: 4.1,
-        dimensions: '1600mm wingspan',
+        dimensions: 'Размах 1600мм',
         motorParams: '3536 850KV',
         payloads: ['nadir_camera']
     },

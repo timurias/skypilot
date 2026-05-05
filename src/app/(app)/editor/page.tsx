@@ -50,12 +50,12 @@ import { availablePayloads, initialUavConfigurations, uavTypes } from '@/lib/dat
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const formSchema = z.object({
-  name: z.string().min(3, 'Name must be at least 3 characters.'),
-  type: z.enum(['MT', 'ST', 'SVVP'], { required_error: 'Please select a UAV type.' }),
-  mass: z.coerce.number().positive('Mass must be a positive number.'),
-  dimensions: z.string().min(1, 'Dimensions are required.'),
-  motorParams: z.string().min(1, 'Motor parameters are required.'),
-  payloads: z.array(z.string()).min(1, 'Select at least one payload.'),
+  name: z.string().min(3, 'Название должно содержать минимум 3 символа.'),
+  type: z.enum(['MT', 'ST', 'SVVP'], { required_error: 'Пожалуйста, выберите тип БПЛА.' }),
+  mass: z.coerce.number().positive('Масса должна быть положительным числом.'),
+  dimensions: z.string().min(1, 'Укажите габариты.'),
+  motorParams: z.string().min(1, 'Укажите параметры двигателей.'),
+  payloads: z.array(z.string()).min(1, 'Выберите хотя бы одну нагрузку.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -102,7 +102,7 @@ export default function EditorPage() {
   const handleAddNew = () => {
     setSelectedConfigId(null);
     form.reset({
-        name: 'New UAV', type: 'MT', mass: 1, dimensions: '', motorParams: '', payloads: []
+        name: 'Новый БПЛА', type: 'MT', mass: 1, dimensions: '', motorParams: '', payloads: []
     });
   };
 
@@ -126,16 +126,16 @@ export default function EditorPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="UAV Model &amp; Payload Editor"
-        description="Select from predefined UAV types, configure their parameters, and define sensor payloads."
+        title="Редактор моделей БПЛА"
+        description="Выбирайте из предопределенных типов БПЛА, настраивайте их параметры и определяйте состав полезной нагрузки."
       />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Configuration Editor</CardTitle>
+              <CardTitle>Редактор конфигурации</CardTitle>
               <CardDescription>
-                Modify an existing configuration or create a new one.
+                Измените существующую конфигурацию или создайте новую.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -148,9 +148,9 @@ export default function EditorPage() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Configuration Name</FormLabel>
+                            <FormLabel>Название конфигурации</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Recon Drone Alpha" {...field} />
+                              <Input placeholder="например, Recon Drone Alpha" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -161,11 +161,11 @@ export default function EditorPage() {
                         name="type"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>UAV Type</FormLabel>
+                            <FormLabel>Тип БПЛА</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a UAV type" />
+                                  <SelectValue placeholder="Выберите тип БПЛА" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
@@ -186,9 +186,9 @@ export default function EditorPage() {
                         name="mass"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Mass (kg)</FormLabel>
+                            <FormLabel>Масса (кг)</FormLabel>
                             <FormControl>
-                              <Input type="number" step="0.1" placeholder="e.g., 2.5" {...field} />
+                              <Input type="number" step="0.1" placeholder="например, 2.5" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -199,9 +199,9 @@ export default function EditorPage() {
                         name="dimensions"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Dimensions</FormLabel>
+                            <FormLabel>Габариты</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., 550x550x300mm" {...field} />
+                              <Input placeholder="например, 550x550x300мм" {...field} />
                             </FormControl>
                              <FormMessage />
                           </FormItem>
@@ -212,9 +212,9 @@ export default function EditorPage() {
                         name="motorParams"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Motor Parameters</FormLabel>
+                            <FormLabel>Параметры двигателей</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., 2212 920KV" {...field} />
+                              <Input placeholder="например, 2212 920KV" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -228,9 +228,9 @@ export default function EditorPage() {
                             render={() => (
                             <FormItem>
                                 <div className="mb-4">
-                                <FormLabel>Sensor Payloads</FormLabel>
+                                <FormLabel>Полезная нагрузка</FormLabel>
                                 <FormDescription>
-                                    Select the sensors attached to the UAV.
+                                    Выберите датчики, установленные на БПЛА.
                                 </FormDescription>
                                 </div>
                                 {availablePayloads.map((item) => (
@@ -272,7 +272,7 @@ export default function EditorPage() {
                         />
                          {uavImage && (
                             <div className="space-y-2">
-                                <Label>UAV Preview</Label>
+                                <Label>Предпросмотр БПЛА</Label>
                                 <div className="aspect-video w-full overflow-hidden rounded-lg border bg-muted">
                                     <Image
                                         src={uavImage.imageUrl}
@@ -289,7 +289,7 @@ export default function EditorPage() {
 
                   </div>
                   <Button type="submit">
-                    <Save className="mr-2" /> Save Configuration
+                    <Save className="mr-2" /> Сохранить конфигурацию
                   </Button>
                 </form>
               </Form>
@@ -299,20 +299,20 @@ export default function EditorPage() {
         <div className="lg:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Saved Configurations</CardTitle>
-              <CardDescription>Manage your saved UAV models.</CardDescription>
+              <CardTitle>Сохраненные конфигурации</CardTitle>
+              <CardDescription>Управление вашими моделями БПЛА.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Button variant="outline" className="w-full mb-4" onClick={handleAddNew}>
-                    <PlusCircle className="mr-2"/> Add New Configuration
+                    <PlusCircle className="mr-2"/> Добавить конфигурацию
                 </Button>
                 <Separator/>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>Название</TableHead>
+                            <TableHead>Тип</TableHead>
+                            <TableHead className="text-right">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -328,7 +328,7 @@ export default function EditorPage() {
                                 <TableCell className="text-right">
                                     <Button variant="ghost" size="icon" onClick={(e) => {e.stopPropagation(); handleDelete(config.id);}}>
                                         <Trash2 className="h-4 w-4 text-destructive"/>
-                                        <span className="sr-only">Delete</span>
+                                        <span className="sr-only">Удалить</span>
                                     </Button>
                                 </TableCell>
                             </TableRow>

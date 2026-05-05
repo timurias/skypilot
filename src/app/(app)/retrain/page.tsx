@@ -5,7 +5,7 @@ import { Bot, Wand2, Lightbulb, FlaskConical } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Line, LineChart, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,8 +18,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 const formSchema = z.object({
-  performanceSummary: z.string().min(10, 'Please provide a more detailed summary.'),
-  keyMetrics: z.string().min(5, 'Please provide key metrics.'),
+  performanceSummary: z.string().min(10, 'Пожалуйста, предоставьте более детальный отчет.'),
+  keyMetrics: z.string().min(5, 'Укажите ключевые метрики.'),
 });
 
 type AiSuggestions = {
@@ -30,8 +30,8 @@ type AiSuggestions = {
 };
 
 const chartConfig = {
-    loss: { label: 'Training Loss', color: 'hsl(var(--chart-1))' },
-    accuracy: { label: 'Validation Accuracy', color: 'hsl(var(--chart-2))' },
+    loss: { label: 'Ошибка обучения', color: 'hsl(var(--chart-1))' },
+    accuracy: { label: 'Точность валидации', color: 'hsl(var(--chart-2))' },
 };
 
 export default function RetrainPage() {
@@ -43,7 +43,7 @@ export default function RetrainPage() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            performanceSummary: 'During a test flight with Recon Drone Alpha in high winds, we observed oscillations during sharp turns and a 2.5m path deviation.',
+            performanceSummary: 'Во время тестового полета Recon Drone Alpha при сильном ветре наблюдались осцилляции при резких поворотах и отклонение от маршрута на 2.5м.',
             keyMetrics: '{"stabilityScore": 0.7, "pathDeviation_m": 2.5, "controlLatency_ms": 150}',
         },
     });
@@ -51,24 +51,24 @@ export default function RetrainPage() {
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
         setAiSuggestions(null);
-        // Mocking AI call to aiSuggestedRetrainingParams
+        // Mocking AI call
         setTimeout(() => {
             setAiSuggestions({
                 retrainingSuggestions: [
-                    'Decrease learning rate to 0.0005 to fine-tune control.',
-                    'Increase number of epochs to 75 for better convergence.',
-                    'Switch to AdamW optimizer for better weight decay.'
+                    'Снизить learning rate до 0.0005 для более тонкой настройки управления.',
+                    'Увеличить количество эпох до 75 для лучшей сходимости.',
+                    'Перейти на оптимизатор AdamW для лучшего затухания весов.'
                 ],
                 dataAugmentationStrategies: [
-                    'Simulate high wind conditions (15-25 m/s) in training data.',
-                    'Introduce random gusts and turbulence effects.',
-                    'Add more scenarios with sharp, high-speed turns.'
+                    'Симулировать условия сильного ветра (15-25 м/с) в обучающих данных.',
+                    'Добавить случайные порывы ветра и эффекты турбулентности.',
+                    'Добавить больше сценариев с резкими высокоскоростными поворотами.'
                 ],
                 focusedRetrainingScenarios: [
-                    'Validate performance in simulated urban canyons.',
-                    'Test response to sudden payload shifts.',
+                    'Проверить производительность в симулируемых городских каньонах.',
+                    'Протестировать реакцию на внезапные смещения полезной нагрузки.',
                 ],
-                rationale: 'The observed oscillations and path deviation in high winds suggest the model is not robust enough to environmental disturbances. A lower learning rate and more targeted data augmentation will improve stability and precision.'
+                rationale: 'Наблюдаемые осцилляции и отклонения при сильном ветре указывают на недостаточную устойчивость модели к внешним помехам. Более низкая скорость обучения и целевая аугментация данных улучшат стабильность и точность.'
             });
             setIsLoading(false);
         }, 2000);
@@ -101,15 +101,15 @@ export default function RetrainPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Neural Network Re-training Console"
-        description="Analyze performance and get AI-powered suggestions for re-training control algorithms."
+        title="Консоль переобучения нейросети"
+        description="Анализируйте производительность и получайте ИИ-рекомендации по дообучению алгоритмов управления."
       />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Performance Analysis Input</CardTitle>
-                    <CardDescription>Provide data from a recent test flight to get AI retraining suggestions.</CardDescription>
+                    <CardTitle>Данные для анализа</CardTitle>
+                    <CardDescription>Предоставьте данные последнего теста для получения рекомендаций.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
@@ -119,9 +119,9 @@ export default function RetrainPage() {
                                 name="performanceSummary"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Performance Summary</FormLabel>
+                                        <FormLabel>Краткий отчет о работе</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Describe the UAV's performance, issues, etc." {...field} rows={4}/>
+                                            <Textarea placeholder="Опишите работу БПЛА, проблемы и т.д." {...field} rows={4}/>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -132,9 +132,9 @@ export default function RetrainPage() {
                                 name="keyMetrics"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Key Performance Metrics (JSON)</FormLabel>
+                                        <FormLabel>Ключевые метрики (JSON)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder='e.g., {"stabilityScore": 0.7}' {...field} />
+                                            <Input placeholder='например, {"stabilityScore": 0.7}' {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -142,7 +142,7 @@ export default function RetrainPage() {
                             />
                              <Button type="submit" disabled={isLoading}>
                                 <Bot className="mr-2" />
-                                {isLoading ? 'Analyzing...' : 'Get AI Suggestions'}
+                                {isLoading ? 'Анализ...' : 'Получить ИИ рекомендации'}
                             </Button>
                         </form>
                     </Form>
@@ -151,7 +151,7 @@ export default function RetrainPage() {
             {isLoading && (
                  <Card>
                     <CardHeader>
-                        <CardTitle>AI Recommendations</CardTitle>
+                        <CardTitle>Рекомендации ИИ</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Skeleton className="h-8 w-1/2" />
@@ -165,24 +165,24 @@ export default function RetrainPage() {
             {aiSuggestions && (
                  <Card>
                     <CardHeader>
-                        <CardTitle>AI Recommendations</CardTitle>
+                        <CardTitle>Рекомендации ИИ</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2"><Wand2 className="text-primary"/>Retraining Suggestions</h3>
+                            <h3 className="font-semibold mb-2 flex items-center gap-2"><Wand2 className="text-primary"/>Параметры обучения</h3>
                             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                                 {aiSuggestions.retrainingSuggestions.map((s, i) => <li key={i}>{s}</li>)}
                             </ul>
                         </div>
                          <div>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2"><FlaskConical className="text-primary"/>Data Augmentation</h3>
+                            <h3 className="font-semibold mb-2 flex items-center gap-2"><FlaskConical className="text-primary"/>Аугментация данных</h3>
                             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                                 {aiSuggestions.dataAugmentationStrategies.map((s, i) => <li key={i}>{s}</li>)}
                             </ul>
                         </div>
                         <Alert>
                             <Lightbulb className="h-4 w-4" />
-                            <AlertTitle>Rationale</AlertTitle>
+                            <AlertTitle>Обоснование</AlertTitle>
                             <AlertDescription>{aiSuggestions.rationale}</AlertDescription>
                         </Alert>
                     </CardContent>
@@ -192,8 +192,8 @@ export default function RetrainPage() {
         <div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Training Progress</CardTitle>
-                    <CardDescription>Monitor the re-training process in real-time.</CardDescription>
+                    <CardTitle>Прогресс обучения</CardTitle>
+                    <CardDescription>Мониторинг процесса переобучения в реальном времени.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <ChartContainer config={chartConfig} className="aspect-video w-full">
@@ -208,7 +208,7 @@ export default function RetrainPage() {
                         </LineChart>
                     </ChartContainer>
                      <Button onClick={() => setIsTraining(true)} disabled={isTraining}>
-                        {isTraining ? 'Training...' : 'Start Re-training'}
+                        {isTraining ? 'Обучение...' : 'Начать переобучение'}
                     </Button>
                 </CardContent>
             </Card>

@@ -62,8 +62,8 @@ export default function PlannerPage() {
     setRestrictedZones([...restrictedZones, newZone]);
     setCurrentZonePoints([]);
     toast({
-      title: "Zone Created",
-      description: "Custom restricted zone has been added to the mission.",
+      title: "Зона создана",
+      description: "Пользовательская запретная зона добавлена в миссию.",
     });
   };
 
@@ -87,8 +87,8 @@ export default function PlannerPage() {
         setFlightPath(path);
         setSafeCorridor(path);
         setAiResponse({
-            warnings: ["High wind advisory in sector Gamma-7.", "Potential GPS interference near tall structures."],
-            notes: "Path optimized for energy efficiency while maintaining a safety buffer from all defined restricted zones."
+            warnings: ["Предупреждение о сильном ветре в секторе Gamma-7.", "Возможные помехи GPS рядом с высокими конструкциями."],
+            notes: "Маршрут оптимизирован для энергоэффективности с соблюдением безопасной дистанции от всех заданных запретных зон."
         });
         setIsLoading(false);
     }, 2000);
@@ -97,17 +97,17 @@ export default function PlannerPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="AI Mission Planner"
-        description="Design flight missions by placing waypoints or drawing custom restricted zones on the mission map."
+        title="ИИ Планировщик миссий"
+        description="Проектируйте полетные задания, расставляя контрольные точки или рисуя запретные зоны на карте."
       />
 
       {mapError && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Map Loading Issue</AlertTitle>
+          <AlertTitle>Проблема загрузки карты</AlertTitle>
           <AlertDescription>
-            The mission map <code className="bg-muted px-1 rounded mx-1">map.png</code> could not be displayed. 
-            Please ensure you have placed your map file at <code className="bg-muted px-1 rounded mx-1">public/map.png</code>.
+            Файл карты <code className="bg-muted px-1 rounded mx-1">map.png</code> не найден. 
+            Пожалуйста, убедитесь, что вы разместили файл карты в папке <code className="bg-muted px-1 rounded mx-1">public/map.png</code>.
           </AlertDescription>
         </Alert>
       )}
@@ -117,18 +117,18 @@ export default function PlannerPage() {
           <Card>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
               <div>
-                <CardTitle>Mission Area Map</CardTitle>
-                <CardDescription>Click on the map to interact.</CardDescription>
+                <CardTitle>Карта зоны миссии</CardTitle>
+                <CardDescription>Нажимайте на карту для взаимодействия.</CardDescription>
               </div>
               <Tabs value={plannerMode} onValueChange={(v) => v && setPlannerMode(v as any)}>
-                <TabsList className="grid w-[240px] grid-cols-2">
+                <TabsList className="grid w-[280px] grid-cols-2">
                   <TabsTrigger value="waypoints">
                     <MapPin className="h-4 w-4 mr-2" />
-                    Waypoints
+                    Точки
                   </TabsTrigger>
                   <TabsTrigger value="zones">
                     <ShieldAlert className="h-4 w-4 mr-2" />
-                    Zones
+                    Зоны
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -141,7 +141,7 @@ export default function PlannerPage() {
               >
                 <img
                   src={MAP_SRC}
-                  alt="Mission Map"
+                  alt="Карта миссии"
                   className="absolute inset-0 h-full w-full object-cover"
                   onError={(e) => {
                     setMapError(true);
@@ -151,11 +151,11 @@ export default function PlannerPage() {
                 
                 <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
                    <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm border shadow-sm">
-                      {plannerMode === 'waypoints' ? 'Mode: Placing Waypoints' : 'Mode: Drawing Restricted Zone'}
+                      {plannerMode === 'waypoints' ? 'Режим: Расстановка точек' : 'Режим: Рисование зон'}
                    </Badge>
                    {plannerMode === 'zones' && currentZonePoints.length > 0 && (
                       <Badge variant="outline" className="bg-primary/10 backdrop-blur-sm border-primary/50 text-primary">
-                        Drawing... ({currentZonePoints.length} points)
+                        Рисование... ({currentZonePoints.length} точек)
                       </Badge>
                    )}
                 </div>
@@ -223,7 +223,7 @@ export default function PlannerPage() {
                           fontWeight="600"
                           className="drop-shadow-md select-none"
                         >
-                          WP {i + 1}
+                          Т{i + 1}
                         </text>
                     </g>
                   ))}
@@ -233,10 +233,10 @@ export default function PlannerPage() {
               {plannerMode === 'zones' && currentZonePoints.length > 0 && (
                 <div className="mt-4 flex gap-2">
                    <Button size="sm" onClick={finishZone} disabled={currentZonePoints.length < 3}>
-                     Save Restricted Zone
+                     Сохранить запретную зону
                    </Button>
                    <Button size="sm" variant="outline" onClick={() => setCurrentZonePoints([])}>
-                     Cancel Drawing
+                     Отмена
                    </Button>
                 </div>
               )}
@@ -247,7 +247,7 @@ export default function PlannerPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Mission Controls</CardTitle>
+              <CardTitle>Управление миссией</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button 
@@ -256,7 +256,7 @@ export default function PlannerPage() {
                 className="w-full h-12 text-lg font-semibold"
               >
                 <Bot className="mr-2 h-5 w-5" />
-                {isLoading ? 'Processing...' : 'Generate AI Flight Path'}
+                {isLoading ? 'Обработка...' : 'Сгенерировать ИИ маршрут'}
               </Button>
               <Button 
                 onClick={() => { setWaypoints([]); setFlightPath(null); setSafeCorridor(null); setAiResponse(null); setRestrictedZones([]); }} 
@@ -265,26 +265,26 @@ export default function PlannerPage() {
                 disabled={isLoading || (waypoints.length === 0 && restrictedZones.length === 0)}
               >
                 <X className="mr-2" />
-                Clear Mission
+                Очистить миссию
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Mission Inventory</CardTitle>
+              <CardTitle>Инвентарь миссии</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-primary">
                     <MapPin className="h-4 w-4" />
-                    Waypoints
+                    Контрольные точки
                 </h4>
                 {waypoints.length > 0 ? (
                   <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
                     {waypoints.map((wp, i) => (
                       <div key={i} className="flex items-center justify-between rounded-md bg-muted/50 p-3 border">
-                        <span className="text-sm font-medium">Waypoint {i + 1}</span>
+                        <span className="text-sm font-medium">Точка {i + 1}</span>
                          <Button variant="ghost" size="icon" onClick={() => removeWaypoint(i)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                          </Button>
@@ -292,20 +292,20 @@ export default function PlannerPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic bg-muted/30 p-4 rounded-md border border-dashed">No waypoints set on the map yet.</p>
+                  <p className="text-xs text-muted-foreground italic bg-muted/30 p-4 rounded-md border border-dashed">Точки еще не установлены.</p>
                 )}
               </div>
 
               <div>
                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-destructive">
                     <ShieldAlert className="h-4 w-4" />
-                    Restricted Zones
+                    Запретные зоны
                 </h4>
                 {restrictedZones.length > 0 ? (
                   <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
                     {restrictedZones.map((z, i) => (
                       <div key={z.id} className="flex items-center justify-between rounded-md bg-destructive/5 p-3 border border-destructive/20">
-                        <span className="text-sm font-medium">No-Fly Zone {i + 1}</span>
+                        <span className="text-sm font-medium">Бесполетная зона {i + 1}</span>
                          <Button variant="ghost" size="icon" onClick={() => removeZone(z.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                          </Button>
@@ -313,7 +313,7 @@ export default function PlannerPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic bg-muted/30 p-4 rounded-md border border-dashed">No restricted zones defined.</p>
+                  <p className="text-xs text-muted-foreground italic bg-muted/30 p-4 rounded-md border border-dashed">Запретные зоны не определены.</p>
                 )}
               </div>
             </CardContent>
@@ -321,7 +321,7 @@ export default function PlannerPage() {
 
           {isLoading && (
             <Card className="animate-pulse border-primary/50">
-                <CardHeader><CardTitle className="text-primary flex items-center gap-2"><Bot className="h-5 w-5"/>AI Generating Path</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-primary flex items-center gap-2"><Bot className="h-5 w-5"/>ИИ прокладывает путь</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-4 w-3/4" />
@@ -331,12 +331,12 @@ export default function PlannerPage() {
 
           {aiResponse && !isLoading && (
             <Card className="border-primary/20 bg-primary/5 shadow-lg">
-                <CardHeader><CardTitle className="flex items-center gap-2 text-primary font-headline"><Bot className="h-5 w-5" />Mission Analysis</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="flex items-center gap-2 text-primary font-headline"><Bot className="h-5 w-5" />Анализ миссии</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     {aiResponse.warnings.length > 0 && (
                         <Alert variant="destructive" className="bg-destructive/10">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Critical Warnings</AlertTitle>
+                            <AlertTitle>Критические предупреждения</AlertTitle>
                             <AlertDescription>
                                 <ul className="list-disc pl-5 text-xs space-y-1 mt-2">
                                     {aiResponse.warnings.map((w,i) => <li key={i}>{w}</li>)}
@@ -346,7 +346,7 @@ export default function PlannerPage() {
                     )}
                     <Alert className="bg-background/50">
                         <Info className="h-4 w-4 text-primary" />
-                        <AlertTitle className="text-primary">Flight Notes</AlertTitle>
+                        <AlertTitle className="text-primary">Заметки о полете</AlertTitle>
                         <AlertDescription className="text-xs leading-relaxed mt-1">
                             {aiResponse.notes}
                         </AlertDescription>

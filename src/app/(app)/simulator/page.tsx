@@ -22,8 +22,8 @@ const testReportData = [
 ]
 
 const chartConfig = {
-    deviation: { label: 'Path Deviation (m)', color: 'hsl(var(--chart-1))' },
-    stability: { label: 'Stability (%)', color: 'hsl(var(--chart-2))' },
+    deviation: { label: 'Отклонение (м)', color: 'hsl(var(--chart-1))' },
+    stability: { label: 'Стабильность (%)', color: 'hsl(var(--chart-2))' },
 };
 
 export default function SimulatorPage() {
@@ -55,14 +55,13 @@ export default function SimulatorPage() {
     }, [isSimulating]);
 
     // Synchronized playback effect
-    // We run this effect more frequently or ensure it catches elements coming into view via tabs
     React.useEffect(() => {
         const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
         
         if (isSimulating) {
             vids.forEach(v => {
                 if (v && v.paused) {
-                    v.play().catch(e => console.error("Auto-sync video play failed:", e));
+                    v.play().catch(e => console.error("Ошибка автозапуска видео:", e));
                 }
             });
         } else {
@@ -72,7 +71,7 @@ export default function SimulatorPage() {
                 }
             });
         }
-    }); // No dependency array to ensure sync whenever any ref changes or state updates during tab switches
+    }); 
     
     React.useEffect(() => {
         let testTimer: NodeJS.Timeout;
@@ -103,21 +102,21 @@ export default function SimulatorPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Virtual Flight Simulator"
-        description="Execute planned missions in a real-time virtual environment with multiple sensor feeds."
+        title="Виртуальный симулятор полета"
+        description="Выполняйте запланированные миссии в виртуальной среде реального времени с несколькими потоками данных."
       />
       <Tabs defaultValue="demonstration">
         <TabsList>
-          <TabsTrigger value="demonstration">Live Simulation</TabsTrigger>
-          <TabsTrigger value="test_report">Test Report</TabsTrigger>
+          <TabsTrigger value="demonstration">Живая симуляция</TabsTrigger>
+          <TabsTrigger value="test_report">Отчет об испытании</TabsTrigger>
         </TabsList>
         <TabsContent value="demonstration" className="mt-6">
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
                 <div className="lg:col-span-3 space-y-6">
                     <Tabs defaultValue="visuals">
                         <TabsList className="mb-4">
-                            <TabsTrigger value="visuals">Visual Feeds</TabsTrigger>
-                            <TabsTrigger value="sensors">Sensor Cluster</TabsTrigger>
+                            <TabsTrigger value="visuals">Видеопотоки</TabsTrigger>
+                            <TabsTrigger value="sensors">Кластер датчиков</TabsTrigger>
                         </TabsList>
                         
                         <TabsContent value="visuals" className="space-y-6">
@@ -126,7 +125,7 @@ export default function SimulatorPage() {
                                 <CardHeader className="bg-muted/50 py-3 flex flex-row items-center justify-between">
                                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                                         <Video className="w-4 h-4 text-primary" />
-                                        Main RGB Camera Feed
+                                        Основная RGB камера
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-0 bg-black aspect-video relative">
@@ -140,7 +139,7 @@ export default function SimulatorPage() {
                                     />
                                     {!isSimulating && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                                            <p className="text-white font-medium">Simulation Paused</p>
+                                            <p className="text-white font-medium">Симуляция на паузе</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -152,7 +151,7 @@ export default function SimulatorPage() {
                                     <CardHeader className="bg-muted/50 py-2 px-3">
                                         <CardTitle className="text-xs font-medium flex items-center gap-2">
                                             <Layers className="w-3 h-3" />
-                                            Depth Map
+                                            Карта глубин
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0 bg-black aspect-video">
@@ -170,7 +169,7 @@ export default function SimulatorPage() {
                                     <CardHeader className="bg-muted/50 py-2 px-3">
                                         <CardTitle className="text-xs font-medium flex items-center gap-2">
                                             <Eye className="w-3 h-3" />
-                                            Lidar Scan
+                                            Лидарное сканирование
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0 bg-black aspect-video">
@@ -188,7 +187,7 @@ export default function SimulatorPage() {
                                     <CardHeader className="bg-muted/50 py-2 px-3">
                                         <CardTitle className="text-xs font-medium flex items-center gap-2">
                                             <MapIcon className="w-3 h-3" />
-                                            Map View
+                                            Вид сверху
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0 bg-black aspect-video">
@@ -210,9 +209,9 @@ export default function SimulatorPage() {
                                 <CardHeader className="bg-muted/50 py-3">
                                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                                         <Cpu className="w-4 h-4 text-primary" />
-                                        Integrated Sensor Cluster Data
+                                        Интегрированный кластер датчиков
                                     </CardTitle>
-                                    <CardDescription>Consolidated telemetry and neural network decision matrices.</CardDescription>
+                                    <CardDescription>Консолидированная телеметрия и матрицы принятия решений нейросети.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-0 bg-black aspect-video relative">
                                     <video 
@@ -225,7 +224,7 @@ export default function SimulatorPage() {
                                     />
                                      {!isSimulating && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                                            <p className="text-white font-medium">Sensor Stream Paused</p>
+                                            <p className="text-white font-medium">Поток датчиков приостановлен</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -237,15 +236,15 @@ export default function SimulatorPage() {
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Mission Controls</CardTitle>
+                            <CardTitle>Управление</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full h-12 text-lg font-semibold" variant={isSimulating ? "outline" : "default"}>
-                                {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Pause</> : <><Play className="mr-2 h-5 w-5"/>Start</>} Simulation
+                                {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Пауза</> : <><Play className="mr-2 h-5 w-5"/>Запуск</>} симуляции
                             </Button>
                             <div className="space-y-1">
                                 <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Mission Progress</span>
+                                    <span>Прогресс миссии</span>
                                     <span>{progress.toFixed(0)}%</span>
                                 </div>
                                 <Progress value={progress} className="h-2" />
@@ -254,26 +253,26 @@ export default function SimulatorPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>Telemetry Data</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Телеметрия</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Orbit className="w-4 h-4"/>Altitude</span><span className="font-mono">{altitude.toFixed(1)} m</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Wind className="w-4 h-4"/>Speed</span><span className="font-mono">{speed.toFixed(1)} m/s</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Zap className="w-4 h-4"/>Signal</span><span className="font-mono">98.5%</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Battery className="w-4 h-4"/>Battery</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Orbit className="w-4 h-4"/>Высота</span><span className="font-mono">{altitude.toFixed(1)} м</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Wind className="w-4 h-4"/>Скорость</span><span className="font-mono">{speed.toFixed(1)} м/с</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Zap className="w-4 h-4"/>Сигнал</span><span className="font-mono">98.5%</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Battery className="w-4 h-4"/>Заряд</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
                             <Progress value={battery} className="w-full h-1" />
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>System Alerts</CardTitle>
+                            <CardTitle>Системные оповещения</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
                              <div className="p-2 rounded bg-green-500/10 text-green-500 text-xs border border-green-500/20">
-                                IMU: Normal stability detected
+                                IMU: Нормальная стабильность
                              </div>
                              <div className="p-2 rounded bg-blue-500/10 text-blue-500 text-xs border border-blue-500/20">
-                                GPS: High precision lock (12 sats)
+                                GPS: Высокая точность (12 спутников)
                              </div>
                         </CardContent>
                     </Card>
@@ -283,18 +282,18 @@ export default function SimulatorPage() {
         <TabsContent value="test_report" className="mt-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Accelerated Background Test</CardTitle>
-                    <CardDescription>Run the mission in a fast, non-visual mode to get a performance report.</CardDescription>
+                    <CardTitle>Ускоренный фоновый тест</CardTitle>
+                    <CardDescription>Запустите миссию в быстром режиме без визуализации для получения отчета.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {!isTesting && !testComplete && (
                         <Button onClick={() => setIsTesting(true)}>
-                            <FileText className="mr-2"/> Run Automated Test
+                            <FileText className="mr-2"/> Запустить автотест
                         </Button>
                     )}
                     {isTesting && (
                         <div>
-                            <p className="text-center mb-2">Simulating mission parameters...</p>
+                            <p className="text-center mb-2">Симуляция параметров миссии...</p>
                             <Progress value={progress} className="w-full" />
                         </div>
                     )}
@@ -303,15 +302,15 @@ export default function SimulatorPage() {
                             <div className="p-4 rounded-lg bg-secondary flex items-start gap-4">
                                 <Bot className="h-5 w-5 mt-1 text-primary" />
                                 <div>
-                                    <h4 className="font-bold">Test Results Summary</h4>
+                                    <h4 className="font-bold">Итоги тестирования</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        The simulation finished successfully. Average path deviation was 0.28m with 95.8% stability.
+                                        Симуляция завершена успешно. Среднее отклонение от маршрута составило 0.28м при стабильности 95.8%.
                                     </p>
                                 </div>
                             </div>
                              <Card>
                                 <CardHeader>
-                                    <CardTitle>Stability & Accuracy Metrics</CardTitle>
+                                    <CardTitle>Метрики стабильности и точности</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                      <ChartContainer config={chartConfig} className="aspect-video w-full">
@@ -327,7 +326,7 @@ export default function SimulatorPage() {
                                      </ChartContainer>
                                 </CardContent>
                              </Card>
-                             <Button onClick={() => setTestComplete(false)}>Reset Simulation</Button>
+                             <Button onClick={() => setTestComplete(false)}>Сброс симуляции</Button>
                         </div>
                     )}
                 </CardContent>

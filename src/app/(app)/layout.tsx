@@ -26,14 +26,14 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Drone, SkyPilotLogo } from '@/components/icons';
+import { Drone } from '@/components/icons';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/editor', label: 'UAV Editor', icon: SlidersHorizontal },
-  { href: '/planner', label: 'Mission Planner', icon: Map },
-  { href: '/simulator', label: 'Simulator', icon: PlayCircle },
-  { href: '/retrain', label: 'Re-training', icon: BrainCircuit },
+  { href: '/', label: 'Панель управления', icon: LayoutDashboard },
+  { href: '/editor', label: 'Редактор БПЛА', icon: SlidersHorizontal },
+  { href: '/planner', label: 'Планировщик миссий', icon: Map },
+  { href: '/simulator', label: 'Симулятор', icon: PlayCircle },
+  { href: '/retrain', label: 'Переобучение', icon: BrainCircuit },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -75,8 +75,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
            <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-auto">
             <User className="size-5" />
             <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
-                <span className="text-sm font-medium">Demo User</span>
-                <span className="text-xs text-muted-foreground">Logout</span>
+                <span className="text-sm font-medium">Демо-пользователь</span>
+                <span className="text-xs text-muted-foreground">Выйти</span>
             </div>
            </Button>
         </SidebarFooter>
