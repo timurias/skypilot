@@ -1,21 +1,15 @@
 'use client'
 
 import * as React from 'react';
-import Image from 'next/image';
-import { Play, Pause, FileText, Bot, Zap, Battery, Orbit, Wind } from 'lucide-react';
-import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Play, Pause, FileText, Bot, Zap, Battery, Orbit, Wind, Video, Layers, Cpu, Eye, Map as MapIcon } from 'lucide-react';
+import { Line, LineChart, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 import { PageHeader } from '@/components/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Drone } from '@/components/icons';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-
-const sensorImage = PlaceHolderImages.find((img) => img.id === 'sensor_feed');
-const mapImage = PlaceHolderImages.find((img) => img.id === 'aerial_map');
 
 const testReportData = [
     { name: '0s', deviation: 0, stability: 98 },
@@ -32,7 +26,6 @@ const chartConfig = {
     stability: { label: 'Stability (%)', color: 'hsl(var(--chart-2))' },
 };
 
-
 export default function SimulatorPage() {
     const [isSimulating, setIsSimulating] = React.useState(false);
     const [progress, setProgress] = React.useState(0);
@@ -40,13 +33,28 @@ export default function SimulatorPage() {
     const [isTesting, setIsTesting] = React.useState(false);
     const [testComplete, setTestComplete] = React.useState(false);
 
+    // Video references for synchronized playback
+    const rgbRef = React.useRef<HTMLVideoElement>(null);
+    const depthRef = React.useRef<HTMLVideoElement>(null);
+    const sensorsRef = React.useRef<HTMLVideoElement>(null);
+    const lidarRef = React.useRef<HTMLVideoElement>(null);
+    const mapViewRef = React.useRef<HTMLVideoElement>(null);
+
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
         if(isSimulating) {
             timer = setInterval(() => {
                 setSimTime(t => t + 1);
-                setProgress(p => (p >= 100 ? 0 : p + 1.66));
+                setProgress(p => (p >= 100 ? 0 : p + 0.5)); // Slower progress for video sync
             }, 1000);
+
+            // Play all videos
+            const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
+            vids.forEach(v => v?.play().catch(() => {}));
+        } else {
+            // Pause all videos
+            const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
+            vids.forEach(v => v?.pause());
         }
         return () => clearInterval(timer);
     }, [isSimulating]);
@@ -79,76 +87,159 @@ export default function SimulatorPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Virtual Flight Simulator"
-        description="Execute planned missions in a real-time virtual environment or run accelerated tests."
+        description="Execute planned missions in a real-time virtual environment with multiple sensor feeds."
       />
       <Tabs defaultValue="demonstration">
         <TabsList>
-          <TabsTrigger value="demonstration">Demonstration</TabsTrigger>
+          <TabsTrigger value="demonstration">Live Simulation</TabsTrigger>
           <TabsTrigger value="test_report">Test Report</TabsTrigger>
         </TabsList>
         <TabsContent value="demonstration" className="mt-6">
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>3D Space Simulation (Side View)</CardTitle>
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+                <div className="lg:col-span-3 space-y-6">
+                    {/* Primary RGB Feed */}
+                    <Card className="overflow-hidden border-primary/20">
+                        <CardHeader className="bg-muted/50 py-3 flex flex-row items-center justify-between">
+                            <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                <Video className="w-4 h-4 text-primary" />
+                                Main RGB Camera Feed
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="w-full h-64 bg-muted rounded-lg overflow-hidden relative">
-                                <div 
-                                    className="absolute transition-all duration-1000 ease-linear"
-                                    style={{
-                                        left: `${progress}%`,
-                                        bottom: `${altitude / 2}%`,
-                                        transform: 'translate(-50%, 50%)'
-                                    }}
-                                >
-                                    <Drone className="w-10 h-10 text-primary" />
+                        <CardContent className="p-0 bg-black aspect-video relative">
+                             <video 
+                                ref={rgbRef}
+                                src="/videos_simulations/rgb_view.mp4" 
+                                className="w-full h-full object-cover"
+                                loop
+                                muted
+                                playsInline
+                            />
+                            {!isSimulating && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                    <p className="text-white font-medium">Simulation Paused</p>
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-foreground/5"></div>
-                            </div>
+                            )}
                         </CardContent>
                     </Card>
-                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                        <Card>
-                            <CardHeader><CardTitle>Sensor Feed</CardTitle></CardHeader>
-                            <CardContent>
-                                {sensorImage && <Image src={sensorImage.imageUrl} alt="Sensor Feed" width={600} height={400} className="rounded-lg aspect-video object-cover" data-ai-hint={sensorImage.imageHint} />}
+
+                    {/* Secondary Sensor Feeds Grid */}
+                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                        <Card className="overflow-hidden">
+                             <CardHeader className="bg-muted/50 py-2 px-3">
+                                <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                    <Layers className="w-3 h-3" />
+                                    Depth Map
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 bg-black aspect-square">
+                                <video 
+                                    ref={depthRef}
+                                    src="/videos_simulations/Depth_map.webm" 
+                                    className="w-full h-full object-cover"
+                                    loop
+                                    muted
+                                    playsInline
+                                />
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader><CardTitle>Map Position</CardTitle></CardHeader>
-                            <CardContent>
-                                <div className="relative aspect-video">
-                                {mapImage && <Image src={mapImage.imageUrl} alt="Map" fill className="rounded-lg object-cover" data-ai-hint={mapImage.imageHint}/>}
-                                 <div 
-                                    className="absolute"
-                                    style={{ left: `${10 + progress * 0.8}%`, top: `${20 + Math.sin(progress/10) * 10}%` }}
-                                >
-                                    <div className="w-4 h-4 rounded-full bg-primary border-2 border-primary-foreground"></div>
-                                </div>
-                                </div>
+                        <Card className="overflow-hidden">
+                             <CardHeader className="bg-muted/50 py-2 px-3">
+                                <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                    <Eye className="w-3 h-3" />
+                                    Lidar Scan
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 bg-black aspect-square">
+                                <video 
+                                    ref={lidarRef}
+                                    src="/videos_simulations/Lidar.webm" 
+                                    className="w-full h-full object-cover"
+                                    loop
+                                    muted
+                                    playsInline
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card className="overflow-hidden">
+                             <CardHeader className="bg-muted/50 py-2 px-3">
+                                <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                    <Cpu className="w-3 h-3" />
+                                    Sensor Cluster
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 bg-black aspect-square">
+                                <video 
+                                    ref={sensorsRef}
+                                    src="/videos_simulations/Sensors.webm" 
+                                    className="w-full h-full object-cover"
+                                    loop
+                                    muted
+                                    playsInline
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card className="overflow-hidden">
+                             <CardHeader className="bg-muted/50 py-2 px-3">
+                                <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                    <MapIcon className="w-3 h-3" />
+                                    Map View
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0 bg-black aspect-square">
+                                <video 
+                                    ref={mapViewRef}
+                                    src="/videos_simulations/Map_view.webm" 
+                                    className="w-full h-full object-cover"
+                                    loop
+                                    muted
+                                    playsInline
+                                />
                             </CardContent>
                         </Card>
                     </div>
                 </div>
+
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
-                        <CardHeader><CardTitle>Controls</CardTitle></CardHeader>
-                        <CardContent>
-                            <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full">
-                                {isSimulating ? <><Pause className="mr-2"/>Pause</> : <><Play className="mr-2"/>Start</>} Simulation
+                        <CardHeader>
+                            <CardTitle>Mission Controls</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full h-12 text-lg font-semibold" variant={isSimulating ? "outline" : "default"}>
+                                {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Pause</> : <><Play className="mr-2 h-5 w-5"/>Start</>} Simulation
                             </Button>
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Mission Progress</span>
+                                    <span>{progress.toFixed(0)}%</span>
+                                </div>
+                                <Progress value={progress} className="h-2" />
+                            </div>
                         </CardContent>
                     </Card>
+
                     <Card>
-                        <CardHeader><CardTitle>Flight Statistics</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Telemetry Data</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Orbit/>Altitude</span><span className="font-mono">{altitude.toFixed(1)} m</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Wind/>Speed</span><span className="font-mono">{speed.toFixed(1)} m/s</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Zap/>Signal</span><span className="font-mono">98.5%</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Battery/>Battery</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
-                            <Progress value={battery} className="w-full" />
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Orbit className="w-4 h-4"/>Altitude</span><span className="font-mono">{altitude.toFixed(1)} m</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Wind className="w-4 h-4"/>Speed</span><span className="font-mono">{speed.toFixed(1)} m/s</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Zap className="w-4 h-4"/>Signal</span><span className="font-mono">98.5%</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Battery className="w-4 h-4"/>Battery</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
+                            <Progress value={battery} className="w-full h-1" />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>System Alerts</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                             <div className="p-2 rounded bg-green-500/10 text-green-500 text-xs border border-green-500/20">
+                                IMU: Normal stability detected
+                             </div>
+                             <div className="p-2 rounded bg-blue-500/10 text-blue-500 text-xs border border-blue-500/20">
+                                GPS: High precision lock (12 sats)
+                             </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -163,27 +254,29 @@ export default function SimulatorPage() {
                 <CardContent className="space-y-6">
                     {!isTesting && !testComplete && (
                         <Button onClick={() => setIsTesting(true)}>
-                            <FileText className="mr-2"/> Run Test
+                            <FileText className="mr-2"/> Run Automated Test
                         </Button>
                     )}
                     {isTesting && (
                         <div>
-                            <p className="text-center mb-2">Test in progress...</p>
+                            <p className="text-center mb-2">Simulating mission parameters...</p>
                             <Progress value={progress} className="w-full" />
                         </div>
                     )}
                     {testComplete && (
                         <div className="space-y-6">
-                            <Alert variant="default" className="bg-secondary">
-                                <Bot className="h-4 w-4" />
-                                <AlertTitle>Test Complete!</AlertTitle>
-                                <AlertDescription>
-                                    The simulation finished successfully. Average path deviation was 0.28m with 95.8% stability.
-                                </AlertDescription>
-                            </Alert>
+                            <div className="p-4 rounded-lg bg-secondary flex items-start gap-4">
+                                <Bot className="h-5 w-5 mt-1 text-primary" />
+                                <div>
+                                    <h4 className="font-bold">Test Results Summary</h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        The simulation finished successfully. Average path deviation was 0.28m with 95.8% stability.
+                                    </p>
+                                </div>
+                            </div>
                              <Card>
                                 <CardHeader>
-                                    <CardTitle>Performance Metrics</CardTitle>
+                                    <CardTitle>Stability & Accuracy Metrics</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                      <ChartContainer config={chartConfig} className="aspect-video w-full">
@@ -193,13 +286,13 @@ export default function SimulatorPage() {
                                             <YAxis yAxisId="right" orientation="right" />
                                             <Tooltip content={<ChartTooltipContent />} />
                                             <Legend />
-                                            <Line yAxisId="left" type="monotone" dataKey="deviation" stroke="var(--color-deviation)" />
-                                            <Line yAxisId="right" type="monotone" dataKey="stability" stroke="var(--color-stability)" />
+                                            <Line yAxisId="left" type="monotone" dataKey="deviation" stroke="var(--color-deviation)" strokeWidth={2} />
+                                            <Line yAxisId="right" type="monotone" dataKey="stability" stroke="var(--color-stability)" strokeWidth={2} />
                                         </LineChart>
-                                    </ChartContainer>
+                                     </ChartContainer>
                                 </CardContent>
                              </Card>
-                             <Button onClick={() => setTestComplete(false)}>Run Again</Button>
+                             <Button onClick={() => setTestComplete(false)}>Reset Simulation</Button>
                         </div>
                     )}
                 </CardContent>
