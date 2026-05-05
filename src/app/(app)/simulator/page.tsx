@@ -42,21 +42,21 @@ export default function SimulatorPage() {
 
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
+        const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
+
         if(isSimulating) {
             timer = setInterval(() => {
                 setSimTime(t => t + 1);
-                setProgress(p => (p >= 100 ? 0 : p + 0.5)); // Slower progress for video sync
+                setProgress(p => (p >= 100 ? 0 : p + 0.5));
             }, 1000);
 
-            // Play all videos
-            const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
             vids.forEach(v => v?.play().catch(() => {}));
         } else {
-            // Pause all videos
-            const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
             vids.forEach(v => v?.pause());
         }
-        return () => clearInterval(timer);
+        return () => {
+          if (timer) clearInterval(timer);
+        };
     }, [isSimulating]);
     
     React.useEffect(() => {
@@ -76,12 +76,14 @@ export default function SimulatorPage() {
                 });
             }, 200);
         }
-        return () => clearInterval(testTimer);
+        return () => {
+          if (testTimer) clearInterval(testTimer);
+        };
     }, [isTesting]);
 
     const altitude = 60 + Math.sin(simTime / 5) * 10;
     const speed = 15 + Math.cos(simTime / 3) * 3;
-    const battery = 100 - (progress * 0.7);
+    const battery = Math.max(0, 100 - (progress * 0.7));
 
   return (
     <div className="flex flex-col gap-8">
@@ -97,106 +99,124 @@ export default function SimulatorPage() {
         <TabsContent value="demonstration" className="mt-6">
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
                 <div className="lg:col-span-3 space-y-6">
-                    {/* Primary RGB Feed */}
-                    <Card className="overflow-hidden border-primary/20">
-                        <CardHeader className="bg-muted/50 py-3 flex flex-row items-center justify-between">
-                            <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                <Video className="w-4 h-4 text-primary" />
-                                Main RGB Camera Feed
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 bg-black aspect-video relative">
-                             <video 
-                                ref={rgbRef}
-                                src="/videos_simulations/rgb_view.mp4" 
-                                className="w-full h-full object-cover"
-                                loop
-                                muted
-                                playsInline
-                            />
-                            {!isSimulating && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                                    <p className="text-white font-medium">Simulation Paused</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <Tabs defaultValue="visuals">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="visuals">Visual Feeds</TabsTrigger>
+                            <TabsTrigger value="sensors">Sensor Cluster</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="visuals" className="space-y-6">
+                            {/* Primary RGB Feed */}
+                            <Card className="overflow-hidden border-primary/20">
+                                <CardHeader className="bg-muted/50 py-3 flex flex-row items-center justify-between">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                        <Video className="w-4 h-4 text-primary" />
+                                        Main RGB Camera Feed
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0 bg-black aspect-video relative">
+                                    <video 
+                                        ref={rgbRef}
+                                        src="/videos_simulations/rgb_view.mp4" 
+                                        className="w-full h-full object-cover"
+                                        loop
+                                        muted
+                                        playsInline
+                                    />
+                                    {!isSimulating && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+                                            <p className="text-white font-medium">Simulation Paused</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
 
-                    {/* Secondary Sensor Feeds Grid */}
-                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-                        <Card className="overflow-hidden">
-                             <CardHeader className="bg-muted/50 py-2 px-3">
-                                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                    <Layers className="w-3 h-3" />
-                                    Depth Map
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 bg-black aspect-square">
-                                <video 
-                                    ref={depthRef}
-                                    src="/videos_simulations/Depth_map.webm" 
-                                    className="w-full h-full object-cover"
-                                    loop
-                                    muted
-                                    playsInline
-                                />
-                            </CardContent>
-                        </Card>
-                        <Card className="overflow-hidden">
-                             <CardHeader className="bg-muted/50 py-2 px-3">
-                                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                    <Eye className="w-3 h-3" />
-                                    Lidar Scan
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 bg-black aspect-square">
-                                <video 
-                                    ref={lidarRef}
-                                    src="/videos_simulations/Lidar.webm" 
-                                    className="w-full h-full object-cover"
-                                    loop
-                                    muted
-                                    playsInline
-                                />
-                            </CardContent>
-                        </Card>
-                        <Card className="overflow-hidden">
-                             <CardHeader className="bg-muted/50 py-2 px-3">
-                                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                    <Cpu className="w-3 h-3" />
-                                    Sensor Cluster
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 bg-black aspect-square">
-                                <video 
-                                    ref={sensorsRef}
-                                    src="/videos_simulations/Sensors.webm" 
-                                    className="w-full h-full object-cover"
-                                    loop
-                                    muted
-                                    playsInline
-                                />
-                            </CardContent>
-                        </Card>
-                        <Card className="overflow-hidden">
-                             <CardHeader className="bg-muted/50 py-2 px-3">
-                                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                    <MapIcon className="w-3 h-3" />
-                                    Map View
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0 bg-black aspect-square">
-                                <video 
-                                    ref={mapViewRef}
-                                    src="/videos_simulations/Map_view.webm" 
-                                    className="w-full h-full object-cover"
-                                    loop
-                                    muted
-                                    playsInline
-                                />
-                            </CardContent>
-                        </Card>
-                    </div>
+                            {/* Grid of other visual feeds */}
+                            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+                                <Card className="overflow-hidden">
+                                    <CardHeader className="bg-muted/50 py-2 px-3">
+                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                            <Layers className="w-3 h-3" />
+                                            Depth Map
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0 bg-black aspect-video">
+                                        <video 
+                                            ref={depthRef}
+                                            src="/videos_simulations/Depth_map.webm" 
+                                            className="w-full h-full object-cover"
+                                            loop
+                                            muted
+                                            playsInline
+                                        />
+                                    </CardContent>
+                                </Card>
+                                <Card className="overflow-hidden">
+                                    <CardHeader className="bg-muted/50 py-2 px-3">
+                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                            <Eye className="w-3 h-3" />
+                                            Lidar Scan
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0 bg-black aspect-video">
+                                        <video 
+                                            ref={lidarRef}
+                                            src="/videos_simulations/Lidar.webm" 
+                                            className="w-full h-full object-cover"
+                                            loop
+                                            muted
+                                            playsInline
+                                        />
+                                    </CardContent>
+                                </Card>
+                                <Card className="overflow-hidden">
+                                    <CardHeader className="bg-muted/50 py-2 px-3">
+                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
+                                            <MapIcon className="w-3 h-3" />
+                                            Map View
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0 bg-black aspect-video">
+                                        <video 
+                                            ref={mapViewRef}
+                                            src="/videos_simulations/Map_view.webm" 
+                                            className="w-full h-full object-cover"
+                                            loop
+                                            muted
+                                            playsInline
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="sensors">
+                            <Card className="overflow-hidden border-primary/20">
+                                <CardHeader className="bg-muted/50 py-3">
+                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                        <Cpu className="w-4 h-4 text-primary" />
+                                        Integrated Sensor Cluster Data
+                                    </CardTitle>
+                                    <CardDescription>Consolidated telemetry and neural network decision matrices.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-0 bg-black aspect-video relative">
+                                    <video 
+                                        ref={sensorsRef}
+                                        src="/videos_simulations/Sensors.webm" 
+                                        className="w-full h-full object-contain"
+                                        loop
+                                        muted
+                                        playsInline
+                                    />
+                                     {!isSimulating && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
+                                            <p className="text-white font-medium">Sensor Stream Paused</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
                 </div>
 
                 <div className="lg:col-span-1 space-y-6">

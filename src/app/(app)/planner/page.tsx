@@ -1,34 +1,33 @@
 'use client';
 
 import * as React from 'react';
-import { Bot, MapPin, Trash2, X, AlertTriangle, Info } from 'lucide-react';
+import { Bot, MapPin, Trash2, X, AlertTriangle, Info, ShieldAlert, MousePointer2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Badge } from '@/components/ui/badge';
 
 type Waypoint = { x: number; y: number };
 type FlightPath = Waypoint[];
 type SafeCorridor = Waypoint[];
 type RestrictedZone = {
   id: string;
-  points: string;
+  points: Waypoint[];
   color: string;
 };
 
-// Use the local map.tiff asset provided by the user
 const MAP_SRC = '/map.tiff';
-
-const mockRestrictedZones: RestrictedZone[] = [
-    { id: 'zone1', points: "150,100 250,100 300,200 200,250 100,200", color: "hsl(var(--destructive) / 0.3)"},
-    { id: 'zone2', points: "600,400 750,450 700,600 550,550", color: "hsl(var(--destructive) / 0.3)"},
-    { id: 'zone3', points: "850,150 950,150 950,250 850,250", color: "hsl(var(--destructive) / 0.3)"},
-];
 
 export default function PlannerPage() {
   const [waypoints, setWaypoints] = React.useState<Waypoint[]>([]);
+  const [restrictedZones, setRestrictedZones] = React.useState<RestrictedZone[]>([]);
+  const [currentZonePoints, setCurrentZonePoints] = React.useState<Waypoint[]>([]);
+  const [plannerMode, setPlannerMode] = React.useState<'waypoints' | 'zones'>('waypoints');
+  
   const [flightPath, setFlightPath] = React.useState<FlightPath | null>(null);
   const [safeCorridor, setSafeCorridor] = React.useState<SafeCorridor | null>(null);
   const [aiResponse, setAiResponse] = React.useState<{warnings: string[], notes: string} | null>(null);
@@ -40,26 +39,31 @@ export default function PlannerPage() {
     const rect = mapRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
-    // Check if clicking inside a restricted zone
-    const isInsideRestricted = mockRestrictedZones.some(zone => {
-      const points = zone.points.split(' ').map(p => p.split(',').map(Number));
-      const xs = points.map(p => p[0]);
-      const ys = points.map(p => p[1]);
-      const minX = Math.min(...xs);
-      const maxX = Math.max(...xs);
-      const minY = Math.min(...ys);
-      const maxY = Math.max(...ys);
-      return x > minX && x < maxX && y > minY && y < maxY;
-    });
 
-    if (!isInsideRestricted) {
+    if (plannerMode === 'waypoints') {
       setWaypoints([...waypoints, { x, y }]);
+    } else {
+      setCurrentZonePoints([...currentZonePoints, { x, y }]);
     }
+  };
+
+  const finishZone = () => {
+    if (currentZonePoints.length < 3) return;
+    const newZone: RestrictedZone = {
+      id: `zone-${Date.now()}`,
+      points: currentZonePoints,
+      color: "hsl(var(--destructive) / 0.4)"
+    };
+    setRestrictedZones([...restrictedZones, newZone]);
+    setCurrentZonePoints([]);
   };
 
   const removeWaypoint = (index: number) => {
     setWaypoints(waypoints.filter((_, i) => i !== index));
+  };
+
+  const removeZone = (id: string) => {
+    setRestrictedZones(restrictedZones.filter(z => z.id !== id));
   };
 
   const handleGeneratePath = () => {
@@ -71,7 +75,7 @@ export default function PlannerPage() {
         setSafeCorridor(path);
         setAiResponse({
             warnings: ["High wind advisory in sector Gamma-7.", "Potential GPS interference near tall structures."],
-            notes: "Path optimized for energy efficiency while maintaining a 50m buffer from all restricted zones. Safe corridor calculated for emergency descent at a 3:1 glide ratio."
+            notes: "Path optimized for energy efficiency while maintaining a safety buffer from all defined restricted zones."
         });
         setIsLoading(false);
     }, 2000);
@@ -81,13 +85,23 @@ export default function PlannerPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="AI Mission Planner"
-        description="Design flight missions by placing waypoints on the high-resolution mission map."
+        description="Design flight missions by placing waypoints or drawing custom restricted zones on the mission map."
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>Mission Area Map</CardTitle>
+              <ToggleGroup type="single" value={plannerMode} onValueChange={(v) => v && setPlannerMode(v as any)}>
+                <ToggleGroupItem value="waypoints" aria-label="Add Waypoints">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Waypoints
+                </ToggleGroupItem>
+                <ToggleGroupItem value="zones" aria-label="Draw Zones">
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Zones
+                </ToggleGroupItem>
+              </ToggleGroup>
             </CardHeader>
             <CardContent>
               <div
@@ -95,26 +109,57 @@ export default function PlannerPage() {
                 onClick={handleMapClick}
                 className="relative aspect-[3/2] w-full cursor-crosshair overflow-hidden rounded-lg border bg-muted"
               >
-                {/* Standard img tag for potential .tiff support or fallback */}
                 <img
                   src={MAP_SRC}
                   alt="Mission Map"
                   className="absolute inset-0 h-full w-full object-cover"
                   onError={(e) => {
-                    // Fallback to a placeholder if .tiff isn't supported by browser
                     (e.target as HTMLImageElement).src = 'https://sovzond.ru/upload/medialibrary/9c8/1.jpg';
                   }}
                 />
+                
+                {/* Information Overlay if map fails (since .tiff is problematic) */}
+                <div className="absolute top-2 left-2 flex gap-2 pointer-events-none">
+                   <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+                      {plannerMode === 'waypoints' ? 'Mode: Placing Waypoints' : 'Mode: Drawing Zone'}
+                   </Badge>
+                </div>
+
                 <svg className="absolute inset-0 h-full w-full pointer-events-none">
-                  {mockRestrictedZones.map(zone => (
-                    <polygon key={zone.id} points={zone.points} fill={zone.color} stroke="hsl(var(--destructive))" strokeWidth="1" />
+                  {/* Saved Restricted Zones */}
+                  {restrictedZones.map(zone => (
+                    <polygon 
+                      key={zone.id} 
+                      points={zone.points.map(p => `${p.x},${p.y}`).join(' ')} 
+                      fill={zone.color} 
+                      stroke="hsl(var(--destructive))" 
+                      strokeWidth="2" 
+                    />
                   ))}
+
+                  {/* Currently Drawing Zone */}
+                  {currentZonePoints.length > 0 && (
+                    <>
+                      <polyline
+                        points={currentZonePoints.map(p => `${p.x},${p.y}`).join(' ')}
+                        fill="none"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="2"
+                        strokeDasharray="4,4"
+                      />
+                      {currentZonePoints.map((p, i) => (
+                        <circle key={i} cx={p.x} cy={p.y} r="3" fill="hsl(var(--primary))" />
+                      ))}
+                    </>
+                  )}
+
+                  {/* Flight Path & Corridor */}
                   {safeCorridor && (
                      <polyline
                         points={safeCorridor.map(p => `${p.x},${p.y}`).join(' ')}
                         fill="none"
-                        stroke="hsl(var(--primary) / 0.3)"
-                        strokeWidth="30"
+                        stroke="hsl(var(--primary) / 0.2)"
+                        strokeWidth="40"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                      />
@@ -123,29 +168,43 @@ export default function PlannerPage() {
                      <polyline
                         points={flightPath.map(p => `${p.x},${p.y}`).join(' ')}
                         fill="none"
-                        stroke="hsl(var(--accent-foreground))"
+                        stroke="hsl(var(--primary))"
                         strokeWidth="3"
-                        strokeDasharray="5,5"
+                        strokeDasharray="8,8"
                      />
                   )}
+
+                  {/* Waypoints */}
                   {waypoints.map((wp, i) => (
                     <g key={i} transform={`translate(${wp.x}, ${wp.y})`}>
                        <circle cx="0" cy="0" r="10" fill="hsl(var(--primary) / 0.5)" />
                        <circle cx="0" cy="0" r="4" fill="hsl(var(--primary-foreground))" stroke="hsl(var(--primary))" strokeWidth="2" />
                        <text
                           x="0"
-                          y="4"
-                          fill="hsl(var(--primary-foreground))"
+                          y="-14"
+                          fill="white"
                           textAnchor="middle"
-                          fontSize="10"
+                          fontSize="12"
                           fontWeight="bold"
+                          className="drop-shadow-md"
                         >
-                          {i + 1}
+                          WP {i + 1}
                         </text>
                     </g>
                   ))}
                 </svg>
               </div>
+              
+              {plannerMode === 'zones' && currentZonePoints.length > 0 && (
+                <div className="mt-4 flex gap-2">
+                   <Button size="sm" onClick={finishZone} disabled={currentZonePoints.length < 3}>
+                     Finish Zone
+                   </Button>
+                   <Button size="sm" variant="outline" onClick={() => setCurrentZonePoints([])}>
+                     Clear Points
+                   </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -158,36 +217,58 @@ export default function PlannerPage() {
             <CardContent className="space-y-4">
               <Button onClick={handleGeneratePath} disabled={isLoading || waypoints.length < 2} className="w-full">
                 <Bot className="mr-2" />
-                {isLoading ? 'Generating Path...' : 'Calculate Safe Corridor'}
+                {isLoading ? 'Generating Path...' : 'Calculate Mission Path'}
               </Button>
-              <Button onClick={() => { setWaypoints([]); setFlightPath(null); setSafeCorridor(null); setAiResponse(null);}} variant="destructive" className="w-full">
+              <Button onClick={() => { setWaypoints([]); setFlightPath(null); setSafeCorridor(null); setAiResponse(null); setRestrictedZones([]); }} variant="destructive" className="w-full">
                 <X className="mr-2" />
-                Clear Mission
+                Clear All
               </Button>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>Waypoint List</CardTitle>
+              <CardTitle>Mission Objects</CardTitle>
             </CardHeader>
-            <CardContent>
-              {waypoints.length > 0 ? (
-                <ul className="space-y-2">
-                  {waypoints.map((wp, i) => (
-                    <li key={i} className="flex items-center justify-between rounded-md bg-muted p-2">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">Waypoint {i + 1}</span>
-                      </div>
-                       <Button variant="ghost" size="icon" onClick={() => removeWaypoint(i)} className="h-8 w-8">
-                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                       </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">Click on the mission map to start placing waypoints.</p>
-              )}
+            <CardContent className="space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Waypoints</h4>
+                {waypoints.length > 0 ? (
+                  <ul className="space-y-2">
+                    {waypoints.map((wp, i) => (
+                      <li key={i} className="flex items-center justify-between rounded-md bg-muted p-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">WP {i + 1}</span>
+                        </div>
+                         <Button variant="ghost" size="icon" onClick={() => removeWaypoint(i)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No waypoints set.</p>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Restricted Zones</h4>
+                {restrictedZones.length > 0 ? (
+                  <ul className="space-y-2">
+                    {restrictedZones.map((z, i) => (
+                      <li key={z.id} className="flex items-center justify-between rounded-md bg-muted p-2 border-l-4 border-destructive">
+                        <span className="text-sm font-medium">Custom Zone {i + 1}</span>
+                         <Button variant="ghost" size="icon" onClick={() => removeZone(z.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No custom zones defined.</p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -197,19 +278,18 @@ export default function PlannerPage() {
                 <CardContent className="space-y-4">
                     <Skeleton className="h-8 w-full" />
                     <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
                 </CardContent>
             </Card>
           )}
 
           {aiResponse && (
             <Card>
-                <CardHeader><CardTitle>AI Path Analysis</CardTitle></CardHeader>
+                <CardHeader><CardTitle>AI Analysis</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     {aiResponse.warnings.length > 0 && (
                         <Alert variant="destructive">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Operational Warnings</AlertTitle>
+                            <AlertTitle>Warnings</AlertTitle>
                             <AlertDescription>
                                 <ul className="list-disc pl-5 text-xs">
                                     {aiResponse.warnings.map((w,i) => <li key={i}>{w}</li>)}
@@ -219,7 +299,7 @@ export default function PlannerPage() {
                     )}
                     <Alert>
                         <Info className="h-4 w-4" />
-                        <AlertTitle>Mission Notes</AlertTitle>
+                        <AlertTitle>Notes</AlertTitle>
                         <AlertDescription className="text-xs">
                             {aiResponse.notes}
                         </AlertDescription>
