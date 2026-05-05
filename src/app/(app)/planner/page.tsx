@@ -22,7 +22,7 @@ type RestrictedZone = {
 };
 
 // Assets as defined in README
-const MAP_SRC = '/map.tiff';
+const MAP_SRC = '/map.png';
 const FALLBACK_MAP = 'https://sovzond.ru/upload/medialibrary/9c8/1.jpg';
 
 export default function PlannerPage() {
@@ -106,8 +106,8 @@ export default function PlannerPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Map Loading Issue</AlertTitle>
           <AlertDescription>
-            The mission map <code className="bg-muted px-1 rounded mx-1">map.tiff</code> could not be displayed. 
-            Browsers usually do not support TIFF natively. For the best experience, please convert it to <code className="bg-muted px-1 rounded mx-1">.png</code> or <code className="bg-muted px-1 rounded mx-1">.jpg</code>.
+            The mission map <code className="bg-muted px-1 rounded mx-1">map.png</code> could not be displayed. 
+            Please ensure you have placed your map file at <code className="bg-muted px-1 rounded mx-1">public/map.png</code>.
           </AlertDescription>
         </Alert>
       )}

@@ -40,24 +40,39 @@ export default function SimulatorPage() {
     const lidarRef = React.useRef<HTMLVideoElement>(null);
     const mapViewRef = React.useRef<HTMLVideoElement>(null);
 
+    // Main control effect
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
-        const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
-
         if(isSimulating) {
             timer = setInterval(() => {
                 setSimTime(t => t + 1);
                 setProgress(p => (p >= 100 ? 0 : p + 0.5));
             }, 1000);
-
-            vids.forEach(v => v?.play().catch(() => {}));
-        } else {
-            vids.forEach(v => v?.pause());
         }
         return () => {
           if (timer) clearInterval(timer);
         };
     }, [isSimulating]);
+
+    // Synchronized playback effect
+    // We run this effect more frequently or ensure it catches elements coming into view via tabs
+    React.useEffect(() => {
+        const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
+        
+        if (isSimulating) {
+            vids.forEach(v => {
+                if (v && v.paused) {
+                    v.play().catch(e => console.error("Auto-sync video play failed:", e));
+                }
+            });
+        } else {
+            vids.forEach(v => {
+                if (v && !v.paused) {
+                    v.pause();
+                }
+            });
+        }
+    }); // No dependency array to ensure sync whenever any ref changes or state updates during tab switches
     
     React.useEffect(() => {
         let testTimer: NodeJS.Timeout;

@@ -9,7 +9,7 @@ To enable the Virtual Flight Simulator and Mission Planner, you need to place yo
 ### Asset Paths
 The application expects the following file structure:
 
-- `public/map.tiff` - High-resolution mission map.
+- `public/map.png` - High-resolution mission map.
 - `public/videos_simulations/Map_view.webm` - Overhead moving drone view.
 - `public/videos_simulations/Depth_map.webm` - Depth map sensor visualization.
 - `public/videos_simulations/Sensors.webm` - Integrated sensor cluster data.
