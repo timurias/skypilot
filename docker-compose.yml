@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    ports:
+      - "3001:9002"        # исправлен порт: хост 3001 -> контейнер 3000
+    volumes:
+      - .:/app             # монтируем текущую папку (с кодом) в /app контейнера
+      - /app/node_modules  # сохраняем node_modules, установленные в образе, не перезаписывая их локальной папкой
+    environment:
+      - NODE_ENV=development
+    restart: always
