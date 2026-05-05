@@ -1,338 +1,138 @@
 'use client'
 
 import * as React from 'react';
-import { Play, Pause, FileText, Bot, Zap, Battery, Orbit, Wind, Video, Layers, Cpu, Eye, Map as MapIcon } from 'lucide-react';
-import { Line, LineChart, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-
+import { Play, Pause, Bot, Zap, Battery, Orbit, Wind, Video, Cpu, RefreshCcw } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-
-const testReportData = [
-    { name: '0s', deviation: 0, stability: 98 },
-    { name: '10s', deviation: 0.2, stability: 97 },
-    { name: '20s', deviation: 0.1, stability: 99 },
-    { name: '30s', deviation: 0.5, stability: 92 },
-    { name: '40s', deviation: 0.3, stability: 95 },
-    { name: '50s', deviation: 0.4, stability: 94 },
-    { name: '60s', deviation: 0.2, stability: 97 },
-]
-
-const chartConfig = {
-    deviation: { label: 'Отклонение (м)', color: 'hsl(var(--chart-1))' },
-    stability: { label: 'Стабильность (%)', color: 'hsl(var(--chart-2))' },
-};
+import { useAppContext } from '@/context/app-context';
 
 export default function SimulatorPage() {
+    const { configs, selectedConfigId, mission, resetAll } = useAppContext();
     const [isSimulating, setIsSimulating] = React.useState(false);
     const [progress, setProgress] = React.useState(0);
     const [simTime, setSimTime] = React.useState(0);
-    const [isTesting, setIsTesting] = React.useState(false);
-    const [testComplete, setTestComplete] = React.useState(false);
 
-    // Video references for synchronized playback
+    const activeConfig = configs.find(c => c.id === selectedConfigId);
+
     const rgbRef = React.useRef<HTMLVideoElement>(null);
     const depthRef = React.useRef<HTMLVideoElement>(null);
     const sensorsRef = React.useRef<HTMLVideoElement>(null);
     const lidarRef = React.useRef<HTMLVideoElement>(null);
     const mapViewRef = React.useRef<HTMLVideoElement>(null);
 
-    // Main control effect
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
         if(isSimulating) {
             timer = setInterval(() => {
                 setSimTime(t => t + 1);
-                setProgress(p => (p >= 100 ? 0 : p + 0.5));
+                setProgress(p => (p >= 100 ? 0 : p + 0.2));
             }, 1000);
         }
-        return () => {
-          if (timer) clearInterval(timer);
-        };
+        return () => clearInterval(timer);
     }, [isSimulating]);
 
-    // Synchronized playback effect
     React.useEffect(() => {
         const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
-        
-        if (isSimulating) {
-            vids.forEach(v => {
-                if (v && v.paused) {
-                    v.play().catch(e => console.error("Ошибка автозапуска видео:", e));
-                }
-            });
-        } else {
-            vids.forEach(v => {
-                if (v && !v.paused) {
-                    v.pause();
-                }
-            });
-        }
-    }); 
-    
-    React.useEffect(() => {
-        let testTimer: NodeJS.Timeout;
-        if(isTesting) {
-            setTestComplete(false);
-            setProgress(0);
-            testTimer = setInterval(() => {
-                setProgress(p => {
-                    if (p >= 100) {
-                        clearInterval(testTimer);
-                        setIsTesting(false);
-                        setTestComplete(true);
-                        return 100;
-                    }
-                    return p + 5;
-                });
-            }, 200);
-        }
-        return () => {
-          if (testTimer) clearInterval(testTimer);
-        };
-    }, [isTesting]);
+        vids.forEach(v => {
+            if (!v) return;
+            if (isSimulating) {
+                v.play().catch(() => {});
+            } else {
+                v.pause();
+            }
+        });
+    }, [isSimulating]);
 
-    const altitude = 60 + Math.sin(simTime / 5) * 10;
-    const speed = 15 + Math.cos(simTime / 3) * 3;
-    const battery = Math.max(0, 100 - (progress * 0.7));
+    const altitude = 60 + Math.sin(simTime / 5) * 5;
+    const speed = (activeConfig?.type === 'ST' ? 25 : 12) + Math.cos(simTime / 3) * 2;
+    const battery = Math.max(0, 100 - (progress * 0.5));
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Виртуальный симулятор полета"
-        description="Выполняйте запланированные миссии в виртуальной среде реального времени с несколькими потоками данных."
-      />
-      <Tabs defaultValue="demonstration">
-        <TabsList>
-          <TabsTrigger value="demonstration">Живая симуляция</TabsTrigger>
-          <TabsTrigger value="test_report">Отчет об испытании</TabsTrigger>
-        </TabsList>
-        <TabsContent value="demonstration" className="mt-6">
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
-                <div className="lg:col-span-3 space-y-6">
-                    <Tabs defaultValue="visuals">
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="visuals">Видеопотоки</TabsTrigger>
-                            <TabsTrigger value="sensors">Кластер датчиков</TabsTrigger>
-                        </TabsList>
-                        
-                        <TabsContent value="visuals" className="space-y-6">
-                            {/* Primary RGB Feed */}
-                            <Card className="overflow-hidden border-primary/20">
-                                <CardHeader className="bg-muted/50 py-3 flex flex-row items-center justify-between">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                        <Video className="w-4 h-4 text-primary" />
-                                        Основная RGB камера
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0 bg-black aspect-video relative">
-                                    <video 
-                                        ref={rgbRef}
-                                        src="/videos_simulations/rgb_view.mp4" 
-                                        className="w-full h-full object-cover"
-                                        loop
-                                        muted
-                                        playsInline
-                                    />
-                                    {!isSimulating && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                                            <p className="text-white font-medium">Симуляция на паузе</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Симулятор"
+          description={`Тестирование ${activeConfig?.name || 'БПЛА'} по заданному маршруту.`}
+        />
+        <Button variant="outline" size="sm" onClick={resetAll} className="gap-2">
+           <RefreshCcw className="h-4 w-4" /> Обновить всё
+        </Button>
+      </div>
 
-                            {/* Grid of other visual feeds */}
-                            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-                                <Card className="overflow-hidden">
-                                    <CardHeader className="bg-muted/50 py-2 px-3">
-                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                            <Layers className="w-3 h-3" />
-                                            Карта глубин
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0 bg-black aspect-video">
-                                        <video 
-                                            ref={depthRef}
-                                            src="/videos_simulations/Depth_map.webm" 
-                                            className="w-full h-full object-cover"
-                                            loop
-                                            muted
-                                            playsInline
-                                        />
-                                    </CardContent>
-                                </Card>
-                                <Card className="overflow-hidden">
-                                    <CardHeader className="bg-muted/50 py-2 px-3">
-                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                            <Eye className="w-3 h-3" />
-                                            Лидарное сканирование
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0 bg-black aspect-video">
-                                        <video 
-                                            ref={lidarRef}
-                                            src="/videos_simulations/Lidar.webm" 
-                                            className="w-full h-full object-cover"
-                                            loop
-                                            muted
-                                            playsInline
-                                        />
-                                    </CardContent>
-                                </Card>
-                                <Card className="overflow-hidden">
-                                    <CardHeader className="bg-muted/50 py-2 px-3">
-                                        <CardTitle className="text-xs font-medium flex items-center gap-2">
-                                            <MapIcon className="w-3 h-3" />
-                                            Вид сверху
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0 bg-black aspect-video">
-                                        <video 
-                                            ref={mapViewRef}
-                                            src="/videos_simulations/Map_view.webm" 
-                                            className="w-full h-full object-cover"
-                                            loop
-                                            muted
-                                            playsInline
-                                        />
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </TabsContent>
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <Tabs defaultValue="visuals">
+            <TabsList className="mb-4">
+              <TabsTrigger value="visuals">Видеопотоки</TabsTrigger>
+              <TabsTrigger value="sensors">Кластер датчиков</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="visuals" className="space-y-6">
+              <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
+                <video ref={rgbRef} src="/videos_simulations/rgb_view.mp4" className="w-full h-full object-cover" loop muted playsInline />
+                {!isSimulating && <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10"><p className="text-white font-bold">ОЖИДАНИЕ ЗАПУСКА</p></div>}
+              </Card>
 
-                        <TabsContent value="sensors">
-                            <Card className="overflow-hidden border-primary/20">
-                                <CardHeader className="bg-muted/50 py-3">
-                                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                                        <Cpu className="w-4 h-4 text-primary" />
-                                        Интегрированный кластер датчиков
-                                    </CardTitle>
-                                    <CardDescription>Консолидированная телеметрия и матрицы принятия решений нейросети.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-0 bg-black aspect-video relative">
-                                    <video 
-                                        ref={sensorsRef}
-                                        src="/videos_simulations/Sensors.webm" 
-                                        className="w-full h-full object-contain"
-                                        loop
-                                        muted
-                                        playsInline
-                                    />
-                                     {!isSimulating && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-10">
-                                            <p className="text-white font-medium">Поток датчиков приостановлен</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    </Tabs>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                {[
+                  { ref: depthRef, src: '/videos_simulations/Depth_map.webm', label: 'Карта глубин' },
+                  { ref: lidarRef, src: '/videos_simulations/Lidar.webm', label: 'Лидар' },
+                  { ref: mapViewRef, src: '/videos_simulations/Map_view.webm', label: 'Вид сверху' }
+                ].map((vid, i) => (
+                  <Card key={i} className="overflow-hidden bg-black aspect-video relative">
+                    <video ref={vid.ref} src={vid.src} className="w-full h-full object-cover" loop muted playsInline />
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/50 text-[10px] text-white rounded">{vid.label}</div>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="sensors">
+              <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
+                <video ref={sensorsRef} src="/videos_simulations/Sensors.webm" className="w-full h-full object-contain" loop muted playsInline />
+                {!isSimulating && <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10"><p className="text-white font-bold">ДАННЫЕ ТЕЛЕМЕТРИИ ПРИОСТАНОВЛЕНЫ</p></div>}
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Управление</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full h-12 text-lg font-bold" variant={isSimulating ? "outline" : "default"}>
+                    {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Пауза</> : <><Play className="mr-2 h-5 w-5"/>Запуск</>}
+                </Button>
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold"><span>Миссия</span><span>{progress.toFixed(0)}%</span></div>
+                    <Progress value={progress} className="h-1.5" />
                 </div>
+            </CardContent>
+          </Card>
 
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Управление</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full h-12 text-lg font-semibold" variant={isSimulating ? "outline" : "default"}>
-                                {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Пауза</> : <><Play className="mr-2 h-5 w-5"/>Запуск</>} симуляции
-                            </Button>
-                            <div className="space-y-1">
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Прогресс миссии</span>
-                                    <span>{progress.toFixed(0)}%</span>
-                                </div>
-                                <Progress value={progress} className="h-2" />
-                            </div>
-                        </CardContent>
-                    </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Телеметрия</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Высота:</span><span className="font-mono">{altitude.toFixed(1)} м</span></div>
+                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Скорость:</span><span className="font-mono">{speed.toFixed(1)} м/с</span></div>
+                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Заряд:</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
+                <Progress value={battery} className="h-1" />
+            </CardContent>
+          </Card>
 
-                    <Card>
-                        <CardHeader><CardTitle>Телеметрия</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Orbit className="w-4 h-4"/>Высота</span><span className="font-mono">{altitude.toFixed(1)} м</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Wind className="w-4 h-4"/>Скорость</span><span className="font-mono">{speed.toFixed(1)} м/с</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Zap className="w-4 h-4"/>Сигнал</span><span className="font-mono">98.5%</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground flex items-center gap-2"><Battery className="w-4 h-4"/>Заряд</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
-                            <Progress value={battery} className="w-full h-1" />
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Системные оповещения</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                             <div className="p-2 rounded bg-green-500/10 text-green-500 text-xs border border-green-500/20">
-                                IMU: Нормальная стабильность
-                             </div>
-                             <div className="p-2 rounded bg-blue-500/10 text-blue-500 text-xs border border-blue-500/20">
-                                GPS: Высокая точность (12 спутников)
-                             </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </TabsContent>
-        <TabsContent value="test_report" className="mt-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Ускоренный фоновый тест</CardTitle>
-                    <CardDescription>Запустите миссию в быстром режиме без визуализации для получения отчета.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {!isTesting && !testComplete && (
-                        <Button onClick={() => setIsTesting(true)}>
-                            <FileText className="mr-2"/> Запустить автотест
-                        </Button>
-                    )}
-                    {isTesting && (
-                        <div>
-                            <p className="text-center mb-2">Симуляция параметров миссии...</p>
-                            <Progress value={progress} className="w-full" />
-                        </div>
-                    )}
-                    {testComplete && (
-                        <div className="space-y-6">
-                            <div className="p-4 rounded-lg bg-secondary flex items-start gap-4">
-                                <Bot className="h-5 w-5 mt-1 text-primary" />
-                                <div>
-                                    <h4 className="font-bold">Итоги тестирования</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        Симуляция завершена успешно. Среднее отклонение от маршрута составило 0.28м при стабильности 95.8%.
-                                    </p>
-                                </div>
-                            </div>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Метрики стабильности и точности</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                     <ChartContainer config={chartConfig} className="aspect-video w-full">
-                                        <LineChart data={testReportData} margin={{ left: 12, right: 12 }}>
-                                            <XAxis dataKey="name" />
-                                            <YAxis yAxisId="left" />
-                                            <YAxis yAxisId="right" orientation="right" />
-                                            <Tooltip content={<ChartTooltipContent />} />
-                                            <Legend />
-                                            <Line yAxisId="left" type="monotone" dataKey="deviation" stroke="var(--color-deviation)" strokeWidth={2} />
-                                            <Line yAxisId="right" type="monotone" dataKey="stability" stroke="var(--color-stability)" strokeWidth={2} />
-                                        </LineChart>
-                                     </ChartContainer>
-                                </CardContent>
-                             </Card>
-                             <Button onClick={() => setTestComplete(false)}>Сброс симуляции</Button>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </TabsContent>
-      </Tabs>
+          <Card>
+            <CardHeader><CardTitle className="text-sm">Статус систем</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+                <div className="text-[10px] p-2 rounded bg-green-500/10 text-green-500 border border-green-500/20">GPS: 12 Спутников (Active)</div>
+                <div className="text-[10px] p-2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Link: 98% (Stable)</div>
+                <div className="text-[10px] p-2 rounded bg-primary/10 text-primary border border-primary/20 uppercase font-bold">Algo: {activeConfig?.algorithmId || 'None'}</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

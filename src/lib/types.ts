@@ -2,6 +2,13 @@ export type UAVType = 'MT' | 'ST' | 'SVVP';
 
 export type Payload = 'livox_mid_360' | 'livox_avia' | 'course_camera' | 'nadir_camera';
 
+export type ControlAlgorithm = {
+  id: string;
+  name: string;
+  category: 'classical' | 'neural';
+  description: string;
+};
+
 export type UAVConfiguration = {
   id: string;
   name: string;
@@ -10,4 +17,21 @@ export type UAVConfiguration = {
   dimensions: string;
   motorParams: string;
   payloads: Payload[];
+  algorithmId?: string;
+};
+
+export type Waypoint = { x: number; y: number };
+
+export type RestrictedZone = {
+  id: string;
+  points: Waypoint[];
+  color: string;
+  name?: string;
+};
+
+export type MissionData = {
+  waypoints: Waypoint[];
+  restrictedZones: RestrictedZone[];
+  flightPath: Waypoint[] | null;
+  safeCorridor: Waypoint[] | null;
 };
