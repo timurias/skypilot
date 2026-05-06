@@ -128,7 +128,7 @@ export default function EditorPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Редактор моделей БПЛА"
+          title="Платформа и функционал"
           description="Выбирайте типы БПЛА, настраивайте параметры и алгоритмы управления."
         />
         <Button variant="outline" size="sm" onClick={resetAll} className="gap-2">

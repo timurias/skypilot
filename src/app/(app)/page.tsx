@@ -18,7 +18,7 @@ import { PageHeader } from '@/components/page-header';
 
 const features = [
   {
-    title: 'Редактор БПЛА и нагрузок',
+    title: 'Платформа и функционал',
     description: 'Конфигурация типов БПЛА, параметров и полезной нагрузки.',
     icon: SlidersHorizontal,
     href: '/editor',
@@ -36,7 +36,7 @@ const features = [
     href: '/simulator',
   },
   {
-    title: 'Консоль переобучения НС',
+    title: 'Консоль дообучения НС',
     description: 'Мониторинг и запуск процесса дообучения нейросетевых моделей.',
     icon: BrainCircuit,
     href: '/retrain',
@@ -47,7 +47,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Добро пожаловать в SkyPilot AI"
+        title="Добро пожаловать в АРХИТЕКТОР АСУ БВС"
         description="Интегрированная среда для проектирования, симуляции и совершенствования автономных систем управления БПЛА."
       />
 
@@ -56,7 +56,7 @@ export default function DashboardPage() {
           <Card key={feature.href} className="flex flex-col">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <CardTitle className="text-xl font-headline">
+                <CardTitle className="text-xl font-headline leading-tight">
                   {feature.title}
                 </CardTitle>
                 <feature.icon className="h-8 w-8 text-primary" />

@@ -4,7 +4,7 @@ import { AppProvider } from '@/context/app-context';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SkyPilot AI',
+  title: 'АРХИТЕКТОР АСУ БВС',
   description: 'Проектирование и симуляция автономных систем управления БПЛА с помощью ИИ.',
 };
 

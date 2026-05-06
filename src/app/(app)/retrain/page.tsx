@@ -101,7 +101,7 @@ export default function RetrainPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Консоль переобучения нейросети"
+        title="Консоль дообучения нейросети"
         description="Анализируйте производительность и получайте ИИ-рекомендации по дообучению алгоритмов управления."
       />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -192,8 +192,8 @@ export default function RetrainPage() {
         <div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Прогресс обучения</CardTitle>
-                    <CardDescription>Мониторинг процесса переобучения в реальном времени.</CardDescription>
+                    <CardTitle>Прогресс дообучения</CardTitle>
+                    <CardDescription>Мониторинг процесса дообучения в реальном времени.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <ChartContainer config={chartConfig} className="aspect-video w-full">
@@ -208,7 +208,7 @@ export default function RetrainPage() {
                         </LineChart>
                     </ChartContainer>
                      <Button onClick={() => setIsTraining(true)} disabled={isTraining}>
-                        {isTraining ? 'Обучение...' : 'Начать переобучение'}
+                        {isTraining ? 'Дообучение...' : 'Начать дообучение'}
                     </Button>
                 </CardContent>
             </Card>

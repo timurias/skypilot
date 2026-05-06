@@ -30,10 +30,10 @@ import { Drone } from '@/components/icons';
 
 const navItems = [
   { href: '/', label: 'Панель управления', icon: LayoutDashboard },
-  { href: '/editor', label: 'Редактор БПЛА', icon: SlidersHorizontal },
+  { href: '/editor', label: 'Платформа и функционал', icon: SlidersHorizontal },
   { href: '/planner', label: 'Планировщик миссий', icon: Map },
   { href: '/simulator', label: 'Симулятор', icon: PlayCircle },
-  { href: '/retrain', label: 'Переобучение', icon: BrainCircuit },
+  { href: '/retrain', label: 'Дообучение', icon: BrainCircuit },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -48,8 +48,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center"
           >
             <Drone className="size-7 text-primary" />
-            <span className="font-headline text-xl font-semibold text-primary group-data-[collapsible=icon]:hidden">
-              SkyPilot AI
+            <span className="font-headline text-lg font-semibold text-primary group-data-[collapsible=icon]:hidden leading-tight">
+              АРХИТЕКТОР АСУ БВС
             </span>
           </div>
         </SidebarHeader>
@@ -84,8 +84,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 md:hidden">
           <SidebarTrigger />
-          <h1 className="font-headline text-xl font-semibold text-primary">
-            SkyPilot AI
+          <h1 className="font-headline text-lg font-semibold text-primary">
+            АРХИТЕКТОР АСУ БВС
           </h1>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
