@@ -13,23 +13,34 @@ export const availablePayloads = [
   { id: 'nadir_camera', name: 'Надирная камера' },
 ];
 
-export const controlAlgorithms: Record<UAVType, ControlAlgorithm[]> = {
-  MT: [
-    { id: 'pid_classic', name: 'Классический PID', category: 'classical', description: 'Базовая стабилизация по всем осям.' },
-    { id: 'robust_hinf', name: 'Robust H-infinity', category: 'classical', description: 'Устойчивость к порывам ветра до 15 м/с.' },
-    { id: 'rl_fault_tolerant', name: 'RL Fault-Tolerant', category: 'neural', description: 'ИИ-управление при отказе одного из роторов.' },
-    { id: 'deep_ppo', name: 'Deep PPO Navigator', category: 'neural', description: 'Нейросетевое планирование в плотной застройке.' },
-  ],
-  ST: [
-    { id: 'lqr_optimal', name: 'LQR Оптимальный', category: 'classical', description: 'Минимизация расхода энергии на больших дистанциях.' },
-    { id: 'mpc_cruise', name: 'MPC Cruise', category: 'classical', description: 'Прогнозное управление траекторией.' },
-    { id: 'neuro_fuzzy', name: 'Neuro-Fuzzy Adaptive', category: 'neural', description: 'Адаптация к изменению центра масс.' },
-  ],
-  SVVP: [
-    { id: 'hybrid_transition', name: 'Hybrid Transition', category: 'classical', description: 'Плавный переход из режима висения в горизонтальный полет.' },
-    { id: 'smc_vtol', name: 'Sliding Mode Control', category: 'classical', description: 'Повышенная точность при вертикальной посадке.' },
-    { id: 'rl_transition_ai', name: 'Transition AI', category: 'neural', description: 'Нейросетевая оптимизация переходных режимов при турбулентности.' },
-  ],
+export const controlAlgorithmsHierarchy = {
+  lowLevel: {
+    name: 'База алгоритмов низкоуровневого управления',
+    classical: {
+      name: 'База классических алгоритмов низкоуровневого управления',
+      items: [
+        { id: 'classic_low_stab', name: 'Алгоритм внутреннего контура стабилизации углового положения БВС', description: 'Обеспечивает базовую стабилизацию по всем осям.' },
+        { id: 'classic_low_fail_id', name: 'Алгоритм идентификации отказов в контуре угловой стабилизации БВС', description: 'Обнаружение аномалий в работе датчиков и приводов.' },
+        { id: 'classic_low_reconfig', name: 'Алгоритм реконфигурации системы управления БВС в случаях отказа', description: 'Изменение параметров управления при повреждениях или потере эффективности.' },
+        { id: 'classic_low_adapt', name: 'Алгоритм адаптации САУ БВС при изменении стандартных условий применения', description: 'Подстройка под изменение внешней среды (ветер, давление).' },
+      ]
+    },
+    neural: {
+      name: 'Нейросетевые алгоритмы низкоуровневого управления БВС',
+      items: [
+        { id: 'neural_low_ctrl', name: 'Нейросетевой алгоритм низкоуровневого управления БВС', description: 'Использование обученных нейросетей для прямой стабилизации и управления.' },
+      ]
+    }
+  },
+  highLevel: {
+    name: 'База алгоритмов высокоуровневого управления',
+    items: [
+      { id: 'high_sensor_fusion', name: 'Алгоритм комплексирования результатов анализа видеоинформации и БНС', description: 'Слияние данных компьютерного зрения и инерциальной навигации.' },
+      { id: 'high_obstacle_avoidance', name: 'Алгоритм идентификации и облета препятствий с ИИ', description: 'Автоматическое распознавание и динамическое уклонение от препятствий.' },
+      { id: 'high_path_planning', name: 'Алгоритм автоматического планирования маршрута полета с учетом безопасности', description: 'Обеспечение безопасности третьих лиц и инфраструктуры при отказах.' },
+      { id: 'high_auto_landing', name: 'Алгоритм автоматической посадки на подвижную платформу', description: 'Прецизионная посадка на движущиеся объекты.' },
+    ]
+  }
 };
 
 export const initialUavConfigurations: UAVConfiguration[] = [
@@ -41,7 +52,7 @@ export const initialUavConfigurations: UAVConfiguration[] = [
         dimensions: '550x550x300мм',
         motorParams: '2212 920KV',
         payloads: ['livox_mid_360', 'course_camera'],
-        algorithmId: 'pid_classic'
+        algorithmIds: ['classic_low_stab', 'high_sensor_fusion']
     },
     {
         id: 'config-2',
@@ -51,6 +62,6 @@ export const initialUavConfigurations: UAVConfiguration[] = [
         dimensions: 'Размах 1600мм',
         motorParams: '3536 850KV',
         payloads: ['nadir_camera'],
-        algorithmId: 'lqr_optimal'
+        algorithmIds: ['classic_low_stab', 'high_path_planning']
     },
 ];

@@ -4,8 +4,7 @@ import * as React from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { PlusCircle, Save, Trash2, Cpu, RefreshCcw } from 'lucide-react';
-import Image from 'next/image';
+import { PlusCircle, Save, Trash2, Cpu, RefreshCcw, ChevronRight } from 'lucide-react';
 
 import { PageHeader } from '@/components/page-header';
 import {
@@ -34,20 +33,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import type { UAVConfiguration, UAVType } from '@/lib/types';
-import { availablePayloads, uavTypes, controlAlgorithms } from '@/lib/data';
+import { availablePayloads, uavTypes, controlAlgorithmsHierarchy } from '@/lib/data';
 import { useAppContext } from '@/context/app-context';
 
 const formSchema = z.object({
@@ -57,7 +47,7 @@ const formSchema = z.object({
   dimensions: z.string().min(1, 'Укажите габариты.'),
   motorParams: z.string().min(1, 'Укажите параметры двигателей.'),
   payloads: z.array(z.string()).min(1, 'Выберите хотя бы одну нагрузку.'),
-  algorithmId: z.string().optional(),
+  algorithmIds: z.array(z.string()).default([]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -74,7 +64,7 @@ export default function EditorPage() {
       dimensions: '',
       motorParams: '',
       payloads: [],
-      algorithmId: '',
+      algorithmIds: [],
     },
   });
 
@@ -85,11 +75,11 @@ export default function EditorPage() {
     if (config) {
       form.reset({
         ...config,
-        algorithmId: config.algorithmId || '',
+        algorithmIds: config.algorithmIds || [],
       });
     } else {
       form.reset({
-        name: '', type: 'MT', mass: 0, dimensions: '', motorParams: '', payloads: [], algorithmId: ''
+        name: '', type: 'MT', mass: 0, dimensions: '', motorParams: '', payloads: [], algorithmIds: []
       });
     }
   }, [selectedConfigId, configs, form]);
@@ -111,7 +101,7 @@ export default function EditorPage() {
   const handleAddNew = () => {
     setSelectedConfigId(null);
     form.reset({
-        name: 'Новый БПЛА', type: 'MT', mass: 1, dimensions: '', motorParams: '', payloads: [], algorithmId: ''
+        name: 'Новый БПЛА', type: 'MT', mass: 1, dimensions: '', motorParams: '', payloads: [], algorithmIds: []
     });
   };
 
@@ -131,8 +121,8 @@ export default function EditorPage() {
       default: return null;
     }
   };
+
   const uavGifUrl = getUAVGif(selectedType);
-  const currentAlgorithms = selectedType ? controlAlgorithms[selectedType] : [];
 
   return (
     <div className="flex flex-col gap-8">
@@ -148,16 +138,16 @@ export default function EditorPage() {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Конфигурация планера</CardTitle>
-              <CardDescription>
-                Основные физические параметры и состав оборудования.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Конфигурация планера</CardTitle>
+                  <CardDescription>
+                    Основные физические параметры и состав оборудования.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div className="space-y-6">
                       <FormField
@@ -279,58 +269,132 @@ export default function EditorPage() {
                         )}
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                      <Cpu className="h-5 w-5 text-primary" />
+                      <CardTitle>Алгоритмы Управления</CardTitle>
+                  </div>
+                  <CardDescription>Выберите набор алгоритмов низкого и высокого уровня.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* Низкоуровневое управление */}
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-sm text-primary uppercase flex items-center gap-2">
+                      <ChevronRight className="h-4 w-4" /> {controlAlgorithmsHierarchy.lowLevel.name}
+                    </h3>
+                    <div className="pl-6 space-y-6">
+                      {/* Классические */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold text-muted-foreground">{controlAlgorithmsHierarchy.lowLevel.classical.name}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {controlAlgorithmsHierarchy.lowLevel.classical.items.map((algo) => (
+                            <FormField
+                              key={algo.id}
+                              control={form.control}
+                              name="algorithmIds"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-card hover:bg-accent/50 cursor-pointer">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(algo.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, algo.id])
+                                          : field.onChange(field.value?.filter((v) => v !== algo.id));
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-xs font-medium cursor-pointer">{algo.name}</FormLabel>
+                                    <p className="text-[10px] text-muted-foreground">{algo.description}</p>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Нейросетевые */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold text-muted-foreground">{controlAlgorithmsHierarchy.lowLevel.neural.name}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {controlAlgorithmsHierarchy.lowLevel.neural.items.map((algo) => (
+                            <FormField
+                              key={algo.id}
+                              control={form.control}
+                              name="algorithmIds"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-primary/20 bg-primary/5 p-3 hover:bg-primary/10 cursor-pointer">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(algo.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, algo.id])
+                                          : field.onChange(field.value?.filter((v) => v !== algo.id));
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div className="space-y-1 leading-none">
+                                    <FormLabel className="text-xs font-medium cursor-pointer">{algo.name}</FormLabel>
+                                    <p className="text-[10px] text-muted-foreground">{algo.description}</p>
+                                  </div>
+                                </FormItem>
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <Separator />
 
+                  {/* Высокоуровневое управление */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Cpu className="h-5 w-5 text-primary" />
-                        <h3 className="text-lg font-semibold">Алгоритм Управления</h3>
+                    <h3 className="font-bold text-sm text-primary uppercase flex items-center gap-2">
+                      <ChevronRight className="h-4 w-4" /> {controlAlgorithmsHierarchy.highLevel.name}
+                    </h3>
+                    <div className="pl-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                       {controlAlgorithmsHierarchy.highLevel.items.map((algo) => (
+                        <FormField
+                          key={algo.id}
+                          control={form.control}
+                          name="algorithmIds"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 bg-card hover:bg-accent/50 cursor-pointer">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(algo.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, algo.id])
+                                      : field.onChange(field.value?.filter((v) => v !== algo.id));
+                                  }}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-xs font-medium cursor-pointer">{algo.name}</FormLabel>
+                                <p className="text-[10px] text-muted-foreground">{algo.description}</p>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
                     </div>
-                    <CardDescription>Выберите базовый или нейросетевой алгоритм для различных условий полета.</CardDescription>
-                    
-                    <FormField
-                      control={form.control}
-                      name="algorithmId"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                            >
-                              {currentAlgorithms.map((algo) => (
-                                <FormItem key={algo.id}>
-                                  <FormControl>
-                                    <RadioGroupItem value={algo.id} className="peer sr-only" />
-                                  </FormControl>
-                                  <FormLabel className="flex flex-col items-start justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer h-full">
-                                    <div className="flex items-center justify-between w-full mb-1">
-                                        <span className="font-bold">{algo.name}</span>
-                                        <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${algo.category === 'neural' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-muted text-muted-foreground'}`}>
-                                            {algo.category === 'neural' ? 'НС' : 'Классика'}
-                                        </span>
-                                    </div>
-                                    <span className="text-xs text-muted-foreground">{algo.description}</span>
-                                  </FormLabel>
-                                </FormItem>
-                              ))}
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
+                </CardContent>
+              </Card>
 
-                  <Button type="submit" className="w-full md:w-auto">
-                    <Save className="mr-2 h-4 w-4" /> Сохранить БПЛА
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+              <Button type="submit" className="w-full md:w-auto h-12">
+                <Save className="mr-2 h-5 w-5" /> Сохранить БПЛА
+              </Button>
+            </form>
+          </Form>
         </div>
 
         <div className="lg:col-span-1">

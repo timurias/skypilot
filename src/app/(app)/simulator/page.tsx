@@ -1,16 +1,17 @@
 'use client'
 
 import * as React from 'react';
-import { Play, Pause, Bot, Zap, Battery, Orbit, Wind, Video, Cpu, RefreshCcw } from 'lucide-react';
+import { Play, Pause, RefreshCcw } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAppContext } from '@/context/app-context';
+import { controlAlgorithmsHierarchy } from '@/lib/data';
 
 export default function SimulatorPage() {
-    const { configs, selectedConfigId, mission, resetAll } = useAppContext();
+    const { configs, selectedConfigId, resetAll } = useAppContext();
     const [isSimulating, setIsSimulating] = React.useState(false);
     const [progress, setProgress] = React.useState(0);
     const [simTime, setSimTime] = React.useState(0);
@@ -49,6 +50,20 @@ export default function SimulatorPage() {
     const altitude = 60 + Math.sin(simTime / 5) * 5;
     const speed = (activeConfig?.type === 'ST' ? 25 : 12) + Math.cos(simTime / 3) * 2;
     const battery = Math.max(0, 100 - (progress * 0.5));
+
+    // Названия алгоритмов для отображения в телеметрии
+    const getAlgoNames = () => {
+        if (!activeConfig?.algorithmIds) return 'Не выбрано';
+        const allAlgos = [
+            ...controlAlgorithmsHierarchy.lowLevel.classical.items,
+            ...controlAlgorithmsHierarchy.lowLevel.neural.items,
+            ...controlAlgorithmsHierarchy.highLevel.items
+        ];
+        return activeConfig.algorithmIds
+            .map(id => allAlgos.find(a => a.id === id)?.name)
+            .filter(Boolean)
+            .join(', ');
+    };
 
   return (
     <div className="flex flex-col gap-8">
@@ -124,11 +139,13 @@ export default function SimulatorPage() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-sm">Статус систем</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
+            <CardHeader><CardTitle className="text-sm">Активные системы</CardTitle></CardHeader>
+            <CardContent className="space-y-2 max-h-[300px] overflow-y-auto">
                 <div className="text-[10px] p-2 rounded bg-green-500/10 text-green-500 border border-green-500/20">GPS: 12 Спутников (Active)</div>
                 <div className="text-[10px] p-2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Link: 98% (Stable)</div>
-                <div className="text-[10px] p-2 rounded bg-primary/10 text-primary border border-primary/20 uppercase font-bold">Algo: {activeConfig?.algorithmId || 'None'}</div>
+                <div className="text-[10px] p-2 rounded bg-primary/10 text-primary border border-primary/20 uppercase font-bold leading-tight">
+                    Алгоритмы: {getAlgoNames()}
+                </div>
             </CardContent>
           </Card>
         </div>

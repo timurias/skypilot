@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { UAVConfiguration, MissionData, Waypoint, RestrictedZone } from '@/lib/types';
+import type { UAVConfiguration, MissionData } from '@/lib/types';
 import { initialUavConfigurations } from '@/lib/data';
 
 type AppContextType = {

@@ -5,7 +5,6 @@ export type Payload = 'livox_mid_360' | 'livox_avia' | 'course_camera' | 'nadir_
 export type ControlAlgorithm = {
   id: string;
   name: string;
-  category: 'classical' | 'neural';
   description: string;
 };
 
@@ -17,7 +16,7 @@ export type UAVConfiguration = {
   dimensions: string;
   motorParams: string;
   payloads: Payload[];
-  algorithmId?: string;
+  algorithmIds: string[];
 };
 
 export type Waypoint = { x: number; y: number };
