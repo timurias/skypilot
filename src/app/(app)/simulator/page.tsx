@@ -3,12 +3,13 @@
 import * as React from 'react';
 import { Play, Pause, RefreshCcw } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAppContext } from '@/context/app-context';
 import { controlAlgorithmsHierarchy } from '@/lib/data';
+import { cn } from '@/lib/utils';
 
 export default function SimulatorPage() {
     const { configs, selectedConfigId, resetAll } = useAppContext();
@@ -37,7 +38,7 @@ export default function SimulatorPage() {
         return () => clearInterval(timer);
     }, [isSimulating]);
 
-    // Синхронизация видео при старте/паузе И при переключении вкладок
+    // Единый контроллер синхронизации видео
     React.useEffect(() => {
         const vids = [
             rgbRef.current, 
@@ -45,20 +46,18 @@ export default function SimulatorPage() {
             sensorsRef.current, 
             lidarRef.current, 
             mapViewRef.current
-        ];
+        ].filter(Boolean) as HTMLVideoElement[];
 
         vids.forEach(v => {
-            if (!v) return;
             if (isSimulating) {
-                // Если видео на паузе, запускаем
                 if (v.paused) {
-                    v.play().catch(err => console.error("Video play failed:", err));
+                    v.play().catch(err => console.error("Ошибка воспроизведения видео:", err));
                 }
             } else {
                 v.pause();
             }
         });
-    }, [isSimulating, activeTab]); // Зависимость от activeTab решает проблему появления видео
+    }, [isSimulating, activeTab]);
 
     const altitude = 60 + Math.sin(simTime / 5) * 5;
     const speed = (activeConfig?.type === 'ST' ? 25 : 12) + Math.cos(simTime / 3) * 2;
@@ -97,7 +96,8 @@ export default function SimulatorPage() {
               <TabsTrigger value="sensors">Кластер датчиков</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="visuals" className="space-y-6">
+            {/* Используем ручное переключение видимости вместо TabsContent, чтобы видео не размонтировались */}
+            <div className={cn("space-y-6", activeTab !== "visuals" && "hidden")}>
               <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
                 <video 
                     ref={rgbRef} 
@@ -135,9 +135,9 @@ export default function SimulatorPage() {
                   </Card>
                 ))}
               </div>
-            </TabsContent>
+            </div>
 
-            <TabsContent value="sensors">
+            <div className={cn(activeTab !== "sensors" && "hidden")}>
               <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
                 <video 
                     ref={sensorsRef} 
@@ -153,7 +153,7 @@ export default function SimulatorPage() {
                     </div>
                 )}
               </Card>
-            </TabsContent>
+            </div>
           </Tabs>
         </div>
 
