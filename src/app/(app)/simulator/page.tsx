@@ -15,6 +15,7 @@ export default function SimulatorPage() {
     const [isSimulating, setIsSimulating] = React.useState(false);
     const [progress, setProgress] = React.useState(0);
     const [simTime, setSimTime] = React.useState(0);
+    const [activeTab, setActiveTab] = React.useState('visuals');
 
     const activeConfig = configs.find(c => c.id === selectedConfigId);
 
@@ -24,6 +25,7 @@ export default function SimulatorPage() {
     const lidarRef = React.useRef<HTMLVideoElement>(null);
     const mapViewRef = React.useRef<HTMLVideoElement>(null);
 
+    // Таймер прогресса
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
         if(isSimulating) {
@@ -35,25 +37,35 @@ export default function SimulatorPage() {
         return () => clearInterval(timer);
     }, [isSimulating]);
 
+    // Синхронизация видео при старте/паузе И при переключении вкладок
     React.useEffect(() => {
-        const vids = [rgbRef.current, depthRef.current, sensorsRef.current, lidarRef.current, mapViewRef.current];
+        const vids = [
+            rgbRef.current, 
+            depthRef.current, 
+            sensorsRef.current, 
+            lidarRef.current, 
+            mapViewRef.current
+        ];
+
         vids.forEach(v => {
             if (!v) return;
             if (isSimulating) {
-                v.play().catch(() => {});
+                // Если видео на паузе, запускаем
+                if (v.paused) {
+                    v.play().catch(err => console.error("Video play failed:", err));
+                }
             } else {
                 v.pause();
             }
         });
-    }, [isSimulating]);
+    }, [isSimulating, activeTab]); // Зависимость от activeTab решает проблему появления видео
 
     const altitude = 60 + Math.sin(simTime / 5) * 5;
     const speed = (activeConfig?.type === 'ST' ? 25 : 12) + Math.cos(simTime / 3) * 2;
     const battery = Math.max(0, 100 - (progress * 0.5));
 
-    // Названия алгоритмов для отображения в телеметрии
     const getAlgoNames = () => {
-        if (!activeConfig?.algorithmIds) return 'Не выбрано';
+        if (!activeConfig?.algorithmIds || activeConfig.algorithmIds.length === 0) return 'Не выбрано';
         const allAlgos = [
             ...controlAlgorithmsHierarchy.lowLevel.classical.items,
             ...controlAlgorithmsHierarchy.lowLevel.neural.items,
@@ -79,7 +91,7 @@ export default function SimulatorPage() {
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
         <div className="lg:col-span-3">
-          <Tabs defaultValue="visuals">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="visuals">Видеопотоки</TabsTrigger>
               <TabsTrigger value="sensors">Кластер датчиков</TabsTrigger>
@@ -87,8 +99,19 @@ export default function SimulatorPage() {
             
             <TabsContent value="visuals" className="space-y-6">
               <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
-                <video ref={rgbRef} src="/videos_simulations/rgb_view.mp4" className="w-full h-full object-cover" loop muted playsInline />
-                {!isSimulating && <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10"><p className="text-white font-bold">ОЖИДАНИЕ ЗАПУСКА</p></div>}
+                <video 
+                    ref={rgbRef} 
+                    src="/videos_simulations/rgb_view.mp4" 
+                    className="w-full h-full object-cover" 
+                    loop 
+                    muted 
+                    playsInline 
+                />
+                {!isSimulating && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10">
+                        <p className="text-white font-bold tracking-widest">ОЖИДАНИЕ ЗАПУСКА</p>
+                    </div>
+                )}
               </Card>
 
               <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
@@ -98,8 +121,17 @@ export default function SimulatorPage() {
                   { ref: mapViewRef, src: '/videos_simulations/Map_view.webm', label: 'Вид сверху' }
                 ].map((vid, i) => (
                   <Card key={i} className="overflow-hidden bg-black aspect-video relative">
-                    <video ref={vid.ref} src={vid.src} className="w-full h-full object-cover" loop muted playsInline />
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/50 text-[10px] text-white rounded">{vid.label}</div>
+                    <video 
+                        ref={vid.ref} 
+                        src={vid.src} 
+                        className="w-full h-full object-cover" 
+                        loop 
+                        muted 
+                        playsInline 
+                    />
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/50 text-[10px] text-white rounded font-medium">
+                        {vid.label}
+                    </div>
                   </Card>
                 ))}
               </div>
@@ -107,8 +139,19 @@ export default function SimulatorPage() {
 
             <TabsContent value="sensors">
               <Card className="overflow-hidden border-primary/20 bg-black aspect-video relative">
-                <video ref={sensorsRef} src="/videos_simulations/Sensors.webm" className="w-full h-full object-contain" loop muted playsInline />
-                {!isSimulating && <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10"><p className="text-white font-bold">ДАННЫЕ ТЕЛЕМЕТРИИ ПРИОСТАНОВЛЕНЫ</p></div>}
+                <video 
+                    ref={sensorsRef} 
+                    src="/videos_simulations/Sensors.webm" 
+                    className="w-full h-full object-contain" 
+                    loop 
+                    muted 
+                    playsInline 
+                />
+                {!isSimulating && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-10">
+                        <p className="text-white font-bold tracking-widest">ДАННЫЕ ПРИОСТАНОВЛЕНЫ</p>
+                    </div>
+                )}
               </Card>
             </TabsContent>
           </Tabs>
@@ -118,11 +161,22 @@ export default function SimulatorPage() {
           <Card>
             <CardHeader><CardTitle>Управление</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-                <Button onClick={() => setIsSimulating(!isSimulating)} className="w-full h-12 text-lg font-bold" variant={isSimulating ? "outline" : "default"}>
-                    {isSimulating ? <><Pause className="mr-2 h-5 w-5"/>Пауза</> : <><Play className="mr-2 h-5 w-5"/>Запуск</>}
+                <Button 
+                    onClick={() => setIsSimulating(!isSimulating)} 
+                    className="w-full h-12 text-lg font-bold" 
+                    variant={isSimulating ? "outline" : "default"}
+                >
+                    {isSimulating ? (
+                        <><Pause className="mr-2 h-5 w-5"/>Пауза</>
+                    ) : (
+                        <><Play className="mr-2 h-5 w-5"/>Запуск</>
+                    )}
                 </Button>
                 <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold"><span>Миссия</span><span>{progress.toFixed(0)}%</span></div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-bold">
+                        <span>Миссия</span>
+                        <span>{progress.toFixed(0)}%</span>
+                    </div>
                     <Progress value={progress} className="h-1.5" />
                 </div>
             </CardContent>
@@ -131,9 +185,18 @@ export default function SimulatorPage() {
           <Card>
             <CardHeader><CardTitle className="text-sm">Телеметрия</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Высота:</span><span className="font-mono">{altitude.toFixed(1)} м</span></div>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Скорость:</span><span className="font-mono">{speed.toFixed(1)} м/с</span></div>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Заряд:</span><span className="font-mono">{battery.toFixed(1)}%</span></div>
+                <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Высота:</span>
+                    <span className="font-mono">{altitude.toFixed(1)} м</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Скорость:</span>
+                    <span className="font-mono">{speed.toFixed(1)} м/с</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Заряд:</span>
+                    <span className="font-mono">{battery.toFixed(1)}%</span>
+                </div>
                 <Progress value={battery} className="h-1" />
             </CardContent>
           </Card>
@@ -141,8 +204,12 @@ export default function SimulatorPage() {
           <Card>
             <CardHeader><CardTitle className="text-sm">Активные системы</CardTitle></CardHeader>
             <CardContent className="space-y-2 max-h-[300px] overflow-y-auto">
-                <div className="text-[10px] p-2 rounded bg-green-500/10 text-green-500 border border-green-500/20">GPS: 12 Спутников (Active)</div>
-                <div className="text-[10px] p-2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Link: 98% (Stable)</div>
+                <div className="text-[10px] p-2 rounded bg-green-500/10 text-green-500 border border-green-500/20">
+                    GPS: 12 Спутников (Active)
+                </div>
+                <div className="text-[10px] p-2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">
+                    Link: 98% (Stable)
+                </div>
                 <div className="text-[10px] p-2 rounded bg-primary/10 text-primary border border-primary/20 uppercase font-bold leading-tight">
                     Алгоритмы: {getAlgoNames()}
                 </div>
